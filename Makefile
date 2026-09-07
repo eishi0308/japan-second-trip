@@ -5,7 +5,7 @@ PY := ./.venv/bin
 
 .PHONY: help
 help: ## Show this help
-	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
+	@grep -hE '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) \
 	  | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[1m%-18s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: setup
@@ -79,6 +79,21 @@ up: ## Whole stack in Docker
 .PHONY: down
 down: ## Stop the stack
 	docker compose down
+
+.PHONY: e2e-docker
+e2e-docker: ## End-to-end tests against the Docker stack
+	# Two things the plain `make e2e` path does not need.
+	#
+	# RATE_LIMIT_PER_MINUTE: the suite makes far more than 60 requests a minute,
+	# so at the production default the run fails on whichever test happens to
+	# cross the line — and it looks like a bug in that test, not a limit.
+	#
+	# The warm-up request: `--wait` returns as soon as the healthcheck passes,
+	# which only proves the server answers `/`. One request each way costs
+	# nothing and keeps the first assertion off a cold path.
+	RATE_LIMIT_PER_MINUTE=100000 docker compose up -d --wait --wait-timeout 180
+	curl -sf http://127.0.0.1:3000/ >/dev/null && curl -sf http://127.0.0.1:8000/health >/dev/null
+	cd apps/frontend && npx playwright test
 
 .PHONY: clean
 clean: ## Remove build and cache artefacts

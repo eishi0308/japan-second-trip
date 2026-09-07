@@ -92,7 +92,13 @@ export const api = {
   getEvidence: (id: string) => apiFetch<EvidenceDetail>(`/api/v1/evidence/${id}`),
   feedback: (body: unknown) => apiFetch<{ id: string }>("/api/v1/feedback", { method: "POST", body }),
   pricing: () => apiFetch<PricingPlan[]>("/pricing", { revalidate: 300 }),
-  providers: () => apiFetch<ProvidersInfo>("/providers", { revalidate: 60 }),
+  // Deliberately uncached. With a revalidate window this is evaluated during
+  // `next build` — inside the image build, where no API exists — so DemoBanner
+  // caught the failure, rendered nothing, and that empty banner was baked into
+  // the prerendered HTML. A freshly deployed container then served the product's
+  // central honesty claim as absent until the first revalidation. Demo status
+  // must reflect the running system, so it is read per request.
+  providers: () => apiFetch<ProvidersInfo>("/providers"),
   admin: {
     reviews: (token: string) => apiFetch<{ reviews: AdminReview[] }>("/api/v1/admin/reviews", { token }),
     resolve: (token: string, id: string, body: unknown) =>
