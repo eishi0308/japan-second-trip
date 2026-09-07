@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, ui-serif, serif;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-paper text-ink-900 antialiased;
+  }
+
+  /* Visible focus is non-negotiable: the whole product is keyboard-navigable
+     forms and dense evidence lists. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-accent-600 ring-offset-2 ring-offset-paper;
+  }
+
+  ::selection {
+    @apply bg-accent-200 text-ink-900;
+  }
+}
+
+@layer components {
+  .shell {
+    @apply mx-auto w-full max-w-wide px-5 sm:px-8;
+  }
+
+  .prose-measure {
+    @apply max-w-measure text-[0.975rem] leading-[1.65] text-ink-700;
+  }
+
+  .rule {
+    @apply border-t border-ink-200;
+  }
+
+  .card {
+    @apply rounded-lg border border-ink-200 bg-white;
+  }
+
+  .label {
+    @apply text-[0.7rem] font-medium uppercase tracking-[0.14em] text-ink-500;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-medium
+           transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn bg-ink-900 text-paper hover:bg-ink-800;
+  }
+
+  .btn-secondary {
+    @apply btn border border-ink-300 bg-white text-ink-800 hover:border-ink-400 hover:bg-ink-50;
+  }
+
+  .btn-ghost {
+    @apply btn px-3 py-2 text-ink-600 hover:bg-ink-100 hover:text-ink-900;
+  }
+
+  .field {
+    @apply w-full rounded-md border border-ink-300 bg-white px-3.5 py-2.5 text-[0.95rem] text-ink-900
+           placeholder:text-ink-400 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.8rem] transition-colors;
+  }
+
+  .chip-off {
+    @apply chip border-ink-300 bg-white text-ink-600 hover:border-ink-400 hover:bg-ink-50;
+  }
+
+  .chip-on {
+    @apply chip border-accent-600 bg-accent-600 text-white;
+  }
+}
+
+@layer utilities {
+  .animate-in {
+    animation: fade-up 320ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+
+  /* Motion is decoration here; anyone who has asked the OS to stop it gets none. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

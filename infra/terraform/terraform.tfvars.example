@@ -1,0 +1,19 @@
+# Copy to terraform.tfvars and adjust. Do not commit the real file.
+environment    = "staging"
+aws_region     = "ap-southeast-2"
+image_tag      = "abc1234"          # the git SHA CI pushed
+
+web_origin     = "https://japansecondtrip.example.com"
+public_api_url = "https://japansecondtrip.example.com"
+certificate_arn = ""                 # an ACM cert ARN; required for HTTPS
+
+# Leave every provider on "demo" to deploy a fully working system with no
+# third-party credentials. Switch one at a time and populate the matching
+# secret in Secrets Manager.
+llm_provider       = "demo"
+embedding_provider = "demo"
+place_provider     = "demo"
+transport_provider = "demo"
+weather_provider   = "demo"
+
+alert_email = ""

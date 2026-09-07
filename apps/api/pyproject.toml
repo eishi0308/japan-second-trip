@@ -1,0 +1,81 @@
+[project]
+name = "jst-api"
+version = "0.1.0"
+description = "Japan Second Trip — verified regional travel intelligence API"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  "pydantic>=2.9",
+  "pydantic-settings>=2.6",
+  "sqlalchemy[asyncio]>=2.0.36",
+  "alembic>=1.14",
+  "asyncpg>=0.30",
+  "aiosqlite>=0.20",
+  "pgvector>=0.3.6",
+  "httpx>=0.27",
+  "python-multipart>=0.0.12",
+  "orjson>=3.10",
+  "structlog>=24.4",
+  "tenacity>=9.0",
+  "langchain-core>=0.3.21",
+  "langchain-text-splitters>=0.3.2",
+  "langgraph>=0.2.53",
+  "langgraph-checkpoint>=2.0.6",
+  "langgraph-checkpoint-postgres>=2.0.21",
+  "psycopg[binary,pool]>=3.2",
+  "mcp>=1.1.2",
+  "opentelemetry-api>=1.28",
+  "opentelemetry-sdk>=1.28",
+  "opentelemetry-instrumentation-fastapi>=0.49b0",
+  "redis>=5.2",
+  "beautifulsoup4>=4.12",
+  "python-jose[cryptography]>=3.3",
+  "passlib[bcrypt]>=1.7.4",
+  "stripe>=11.3",
+  "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "pytest-cov>=6.0",
+  "ruff>=0.8",
+  "mypy>=1.13",
+  "types-python-jose",
+  "respx>=0.21",
+]
+llm = [
+  "langchain-openai>=0.2.10",
+  "openai>=1.57",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+# Lint configuration lives at the repository root so every package shares it.
+extend = "../../ruff.toml"
+
+# Type-checking configuration lives in the repository root (mypy.ini) so the
+# whole monorepo shares one set of rules.
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+# One event loop for the whole session, for fixtures *and* tests. The engine,
+# the seed data and the connection pool are session-scoped, and asyncpg binds
+# each pooled connection to the loop that opened it. With pytest-asyncio's
+# default per-test loop, every test after the first reaches into a pool whose
+# sockets belong to a loop that has already closed — "got Future ... attached to
+# a different loop", 52 failures. aiosqlite has no socket and never showed it,
+# which is exactly why the PostgreSQL leg of the matrix exists.
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+testpaths = ["tests"]
+pythonpath = ["src"]
+filterwarnings = ["ignore::DeprecationWarning"]

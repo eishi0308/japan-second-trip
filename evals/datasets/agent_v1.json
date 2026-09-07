@@ -1,0 +1,85 @@
+{
+  "dataset": "agent",
+  "version": "1.0.0",
+  "description": "End-to-end agent behaviour. Each case asserts on the deterministic, checkable parts of a run: which nodes executed, which rules fired, which region was ranked where, and whether the system escalated instead of guessing.",
+  "cases": [
+    {
+      "id": "A01",
+      "suite": "agent",
+      "graph": "where_next",
+      "description": "Three regional nights from Tokyo must rule Kyushu out on travel overhead, not merely rank it low.",
+      "input": {"start_date": "2026-10-12", "total_nights": 12, "regional_nights": 3, "arrival_city": "Tokyo", "departure_city": "Tokyo", "visited_places": ["Tokyo", "Kyoto", "Osaka"], "traveller_type": "couple", "interests": ["food", "onsen", "nature"], "driving": "no_car", "pace": "balanced"},
+      "expect": {
+        "status": "complete",
+        "rejected_region_codes": ["kyushu"],
+        "recommended_in": ["nagano_alps", "tohoku", "hokuriku"],
+        "min_citations": 3,
+        "nodes_include": ["parse_trip_context", "apply_hard_constraints", "retrieve_verified_evidence", "compare_candidates", "grounding_check", "confidence_check", "answer"]
+      }
+    },
+    {
+      "id": "A02",
+      "suite": "agent",
+      "graph": "where_next",
+      "description": "Eight nights from Osaka with coast and art interests should favour Shikoku/Setouchi.",
+      "input": {"start_date": "2026-11-05", "total_nights": 14, "regional_nights": 6, "arrival_city": "Osaka", "departure_city": "Osaka", "visited_places": ["Tokyo", "Kyoto"], "interests": ["art", "coast", "food"], "driving": "willing", "pace": "relaxed"},
+      "expect": {"status": "complete", "recommended_in": ["shikoku_setouchi", "hokuriku"], "min_citations": 2}
+    },
+    {
+      "id": "A03",
+      "suite": "agent",
+      "graph": "where_next",
+      "description": "A near-empty request must still produce an answer and declare its assumptions.",
+      "input": {"visited_places": ["Tokyo"]},
+      "expect": {"status": "complete", "min_assumptions": 1, "min_missing_information": 3}
+    },
+    {
+      "id": "A04",
+      "suite": "agent",
+      "graph": "route_check",
+      "description": "The canonical over-stuffed Tohoku itinerary: one critical travel-burden hop, accommodation churn, and a revision that drops the worst stops.",
+      "input": {"itinerary_text": "Tokyo 3 nights, Sendai 1 night, Ginzan Onsen 1 night, Aomori 1 night, Hakodate 1 night, then Tokyo", "trip_context": {"arrival_city": "Tokyo", "departure_city": "Tokyo", "driving": "no_car", "start_date": "2026-10-12"}},
+      "expect": {
+        "health_in": ["needs_improvement", "high_risk"],
+        "rules_fired": ["R01_travel_burden", "R02_accommodation_churn"],
+        "critical_rules": ["R01_travel_burden"],
+        "strength_rules": ["R50_efficient_segments"],
+        "revision_drops": ["Ginzan Onsen"],
+        "revision_reduces_transit": true,
+        "nodes_include": ["parse_itinerary", "resolve_places", "run_deterministic_checks", "detect_route_issues", "generate_candidate_fixes", "narrate_critique", "grounding_check", "confidence_check", "result"]
+      }
+    },
+    {
+      "id": "A05",
+      "suite": "agent",
+      "graph": "route_check",
+      "description": "A well-shaped itinerary must be reported as healthy rather than criticised for the sake of it.",
+      "input": {"stops": [{"name": "Tokyo", "nights": 3}, {"name": "Kanazawa", "nights": 3}, {"name": "Tokyo", "nights": 0}], "trip_context": {"arrival_city": "Tokyo", "departure_city": "Tokyo", "driving": "no_car"}},
+      "expect": {"health_in": ["healthy", "needs_improvement"], "max_critical_issues": 0, "strength_rules": ["R50_efficient_segments"]}
+    },
+    {
+      "id": "A06",
+      "suite": "agent",
+      "graph": "route_check",
+      "description": "A car-only hop on a public-transport-only trip is a critical failure, not a warning.",
+      "input": {"stops": [{"name": "Kumamoto", "nights": 2}, {"name": "Mount Aso", "nights": 1}, {"name": "Takachiho", "nights": 2}, {"name": "Kumamoto", "nights": 0}], "trip_context": {"arrival_city": "Fukuoka", "departure_city": "Fukuoka", "driving": "no_car"}},
+      "expect": {"rules_fired": ["R05_car_required"], "critical_rules": ["R05_car_required"]}
+    },
+    {
+      "id": "A07",
+      "suite": "agent",
+      "graph": "route_check",
+      "description": "An unknown place must be reported as unresolved, never silently invented or dropped.",
+      "input": {"stops": [{"name": "Tokyo", "nights": 2}, {"name": "Definitely Not A Real Japanese Town", "nights": 2}, {"name": "Sendai", "nights": 2}], "trip_context": {"arrival_city": "Tokyo", "departure_city": "Tokyo"}},
+      "expect": {"min_unresolved": 1, "rules_fired": ["R23_unresolved_stop"]}
+    },
+    {
+      "id": "A08",
+      "suite": "agent",
+      "graph": "route_check",
+      "description": "A route touching the conflicting Ginzan fact must escalate to a human rather than choose a value.",
+      "input": {"stops": [{"name": "Sendai", "nights": 2}, {"name": "Ginzan Onsen", "nights": 2}, {"name": "Sendai", "nights": 0}], "trip_context": {"arrival_city": "Tokyo", "departure_city": "Tokyo", "driving": "no_car"}},
+      "expect": {"human_review_required": true, "min_conflicts": 1}
+    }
+  ]
+}

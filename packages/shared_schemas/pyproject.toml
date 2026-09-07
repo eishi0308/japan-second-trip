@@ -1,0 +1,13 @@
+[project]
+name = "shared-schemas"
+version = "0.1.0"
+description = "Typed contracts shared between the API, the MCP gateway and the web app"
+requires-python = ">=3.11"
+dependencies = ["pydantic>=2.9"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

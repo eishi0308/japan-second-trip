@@ -1,0 +1,19 @@
+id = "rerank"
+version = "1.0.0"
+task_class = "rerank"
+description = "Listwise reranking of retrieved evidence by usefulness to the traveller's question."
+
+system = """
+Reorder the supplied evidence by how directly it helps answer the traveller's question.
+
+Rank higher: operational specifics (access, timing, booking mechanics, seasonal closures), official
+sources, and recently verified records.
+Rank lower: generic description, marketing copy, and anything about a different place or season.
+
+Return ONLY evidence ids that appear in the supplied list, most useful first. Inventing an id, or
+returning an id that was not supplied, is a failure.
+"""
+
+user = """
+Traveller question: $query
+"""

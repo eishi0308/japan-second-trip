@@ -1,0 +1,65 @@
+name: Nightly evals
+
+# The full suite, including the agent and production workloads that are too slow
+# for every pull request. Failures open an issue rather than blocking a merge:
+# an eval regression is information, and the branch it came from has already
+# landed.
+on:
+  schedule:
+    - cron: "0 15 * * *" # 01:00 Australia/Sydney
+  workflow_dispatch:
+
+jobs:
+  full-evals:
+    name: All eval suites + sweep
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: jst
+          POSTGRES_PASSWORD: jst
+          POSTGRES_DB: jst
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U jst -d jst"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      DATABASE_URL: postgresql+asyncpg://jst:jst@localhost:5432/jst
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ./packages/shared_schemas -e ./packages/travel_mcp -e "./apps/api[dev]"
+      - name: Migrate and seed
+        run: |
+          (cd apps/api && alembic upgrade head)
+          python scripts/seed.py
+      - name: All suites
+        run: python -m evals.run all
+      - name: Retrieval hyper-parameter sweep
+        run: python -m evals.runners.sweep
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nightly-eval-reports
+          path: |
+            evals/reports/
+            docs/evals/
+      - name: Open an issue on regression
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Nightly eval regression — ${new Date().toISOString().slice(0, 10)}`,
+              body: `The nightly eval suite failed.\n\nRun: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n\nDownload the \`nightly-eval-reports\` artifact for per-case detail.`,
+              labels: ['evals', 'regression'],
+            });

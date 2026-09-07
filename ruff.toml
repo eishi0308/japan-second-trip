@@ -1,0 +1,46 @@
+# Repo-wide lint and format configuration.
+#
+# At the root so it applies to every package: apps/api, packages/*, evals and
+# scripts. apps/api/pyproject.toml extends this rather than redefining it.
+
+line-length = 100
+target-version = "py311"
+
+[lint]
+select = ["E", "F", "I", "UP", "B", "C4", "SIM", "RUF", "ASYNC", "S"]
+ignore = [
+  "E501",     # line length is the formatter's job
+  "B008",     # FastAPI's Depends() in a default is the documented pattern
+  "S101",     # assert states invariants (weights summing to 1.0) and is used in tests
+  "RUF012",   # ClassVar annotations add noise to plain constant tables
+
+  # Typographic characters are deliberate and correct: × in "1.6× the direct
+  # distance", ° in temperatures, — in prose, and box-drawing characters in the
+  # workflow diagrams that document each graph.
+  "RUF001", "RUF002", "RUF003",
+
+  # Degradation paths catch broadly on purpose: a tracing, cache or optional
+  # provider failure must never fail a user's request. Every such site logs and
+  # continues — see core/resilience.py and observability/tracing.py.
+  "BLE001", "S110",
+
+  # call_with_resilience takes an explicit `timeout`: it is the wrapper that
+  # applies asyncio.wait_for, not a caller that should receive a context.
+  "ASYNC109",
+
+  # These async context managers legitimately return `self`.
+  "PYI034",
+]
+
+[lint.per-file-ignores]
+"apps/api/tests/*" = ["S", "B"]
+"apps/api/src/jst_api/seed/*" = ["E501"]
+# Settings keys read as credentials to the scanner. They are configuration names
+# with non-secret development defaults, and deployed environments refuse those
+# defaults outright — see security/auth._assert_admin_token_safe.
+"apps/api/src/jst_api/core/config.py" = ["S105"]
+"apps/api/src/jst_api/security/auth.py" = ["S105"]
+"evals/*" = ["S"]
+
+[lint.isort]
+known-first-party = ["jst_api", "shared_schemas", "travel_mcp", "evals"]

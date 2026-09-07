@@ -1,0 +1,16 @@
+[project]
+name = "travel-mcp"
+version = "0.1.0"
+description = "travel-intelligence-mcp — shared AI-facing travel capability gateway"
+requires-python = ">=3.11"
+dependencies = ["mcp>=2.0", "pydantic>=2.9", "shared-schemas", "anyio>=4.0"]
+
+[project.scripts]
+travel-intelligence-mcp = "travel_mcp.stdio:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

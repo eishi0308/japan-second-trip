@@ -1,0 +1,128 @@
+{
+  "dataset": "retrieval",
+  "version": "1.0.0",
+  "description": "Golden retrieval set for regional-Japan travel evidence. Relevance is keyed on source titles rather than evidence ids, because ids are assigned at ingestion time and must not pin the dataset to one seeding run.",
+  "notes": "Case classes: 'lexical' queries hinge on exact proper nouns a vector model blurs; 'semantic' queries describe an operational property in words the source never uses; 'mixed' needs both. The split exists so the comparison report can say *where* each retriever wins, not just that hybrid scores higher overall.",
+  "cases": [
+    {
+      "id": "R01", "class": "lexical",
+      "query": "Ginzan Onsen Oishida Hanagasa Bus last departure",
+      "relevant_titles": ["Ginzan Onsen — access and the last bus", "Ginzan Onsen village bus timetable (operator page)", "Ginzan ryokan shuttle — reader note (conflicting)"],
+      "primary_title": "Ginzan Onsen — access and the last bus"
+    },
+    {
+      "id": "R02", "class": "lexical",
+      "query": "Chichu Art Museum timed ticket Naoshima ferry Miyanoura",
+      "relevant_titles": ["Naoshima ferries and museum tickets"],
+      "primary_title": "Naoshima ferries and museum tickets"
+    },
+    {
+      "id": "R03", "class": "lexical",
+      "query": "Nohi Bus Takayama Shirakawa-go reservation",
+      "relevant_titles": ["Takayama–Shirakawa-go–Kanazawa bus reservations"],
+      "primary_title": "Takayama–Shirakawa-go–Kanazawa bus reservations"
+    },
+    {
+      "id": "R04", "class": "lexical",
+      "query": "Tsurunoyu Nyuto Onsen telephone reservation Japanese",
+      "relevant_titles": ["Booking Nyuto Onsen ryokan"],
+      "primary_title": "Booking Nyuto Onsen ryokan"
+    },
+    {
+      "id": "R05", "class": "lexical",
+      "query": "Kagayaki Hokuriku Shinkansen Tokyo Kanazawa direct",
+      "relevant_titles": ["Kanazawa access and why it suits short trips"],
+      "primary_title": "Kanazawa access and why it suits short trips"
+    },
+    {
+      "id": "R06", "class": "lexical",
+      "query": "Mizuumi-go bus Oirase Gorge Lake Towada winter",
+      "relevant_titles": ["Tohoku in winter — what stops running"],
+      "primary_title": "Tohoku in winter — what stops running"
+    },
+    {
+      "id": "R07", "class": "semantic",
+      "query": "which places are effectively impossible to visit without renting a car",
+      "relevant_titles": ["The Noto Peninsula needs a car", "Kyushu onsen — which ones need a car", "Iya Valley — the hardest place in Shikoku to reach"],
+      "primary_title": "The Noto Peninsula needs a car"
+    },
+    {
+      "id": "R08", "class": "semantic",
+      "query": "travelling here is awkward with a big suitcase",
+      "relevant_titles": ["Large luggage in northern Japan"],
+      "primary_title": "Large luggage in northern Japan"
+    },
+    {
+      "id": "R09", "class": "semantic",
+      "query": "why do single night stops make a trip feel exhausting",
+      "relevant_titles": ["Why one-night stops cost more than they look"],
+      "primary_title": "Why one-night stops cost more than they look"
+    },
+    {
+      "id": "R10", "class": "semantic",
+      "query": "accommodation that is hard to book if you do not speak Japanese",
+      "relevant_titles": ["Booking ryokan as an English speaker", "Booking Nyuto Onsen ryokan", "Kurokawa Onsen booking and the bath pass"],
+      "primary_title": "Booking ryokan as an English speaker"
+    },
+    {
+      "id": "R11", "class": "semantic",
+      "query": "somewhere closed for part of the year so my dates may not work",
+      "relevant_titles": ["Kamikochi access and closure dates", "Tateyama Kurobe Alpine Route season and ticketing"],
+      "primary_title": "Kamikochi access and closure dates"
+    },
+    {
+      "id": "R12", "class": "semantic",
+      "query": "is this destination worth the travel overhead on a short trip from Tokyo",
+      "relevant_titles": ["Kyushu from a Tokyo-in-and-out trip", "Reaching Shikoku from Tokyo versus Osaka", "Aomori to Hakodate — worth it or not"],
+      "primary_title": "Kyushu from a Tokyo-in-and-out trip"
+    },
+    {
+      "id": "R13", "class": "mixed",
+      "query": "Kurokawa Onsen access without a car from Fukuoka",
+      "relevant_titles": ["Kyushu onsen — which ones need a car", "Kurokawa Onsen booking and the bath pass"],
+      "primary_title": "Kyushu onsen — which ones need a car"
+    },
+    {
+      "id": "R14", "class": "mixed",
+      "query": "Kamikochi bus access and when the valley closes",
+      "relevant_titles": ["Kamikochi access and closure dates"],
+      "primary_title": "Kamikochi access and closure dates"
+    },
+    {
+      "id": "R15", "class": "mixed",
+      "query": "Sendai as a base for day trips in Tohoku",
+      "relevant_titles": ["Why Sendai works as a base", "Getting into Tohoku from Tokyo"],
+      "primary_title": "Why Sendai works as a base"
+    },
+    {
+      "id": "R16", "class": "mixed",
+      "query": "Iya Valley vine bridge bus timetable public transport",
+      "relevant_titles": ["Iya Valley — the hardest place in Shikoku to reach"],
+      "primary_title": "Iya Valley — the hardest place in Shikoku to reach"
+    },
+    {
+      "id": "R17", "class": "semantic",
+      "query": "volcano access that can close at short notice",
+      "relevant_titles": ["Mount Aso crater access is conditional"],
+      "primary_title": "Mount Aso crater access is conditional"
+    },
+    {
+      "id": "R18", "class": "semantic",
+      "query": "should I buy a rail pass for a single region",
+      "relevant_titles": ["Whether a rail pass is worth it for a regional leg"],
+      "primary_title": "Whether a rail pass is worth it for a regional leg"
+    },
+    {
+      "id": "R19", "class": "mixed",
+      "query": "Yakushima ferry cancellations and buffer days in typhoon season",
+      "relevant_titles": ["Yakushima ferries, weather and buffer days"],
+      "primary_title": "Yakushima ferries, weather and buffer days"
+    },
+    {
+      "id": "R20", "class": "semantic",
+      "query": "car free onsen town reachable from Tokyo in a couple of hours",
+      "relevant_titles": ["Getting into Tohoku from Tokyo", "Nagano without a car", "Why Sendai works as a base"],
+      "primary_title": "Nagano without a car"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "dataset": "rag",
+  "version": "1.0.0",
+  "description": "Grounded-answer quality. Deterministic checks wherever possible: citation validity, structured-output validity, unsupported-claim rate, and refusal to assert what the evidence does not support.",
+  "cases": [
+    {
+      "id": "G01",
+      "query": "How do I reach Ginzan Onsen from Sendai without a car, and what is the last connection?",
+      "filters": {"place_slugs": ["ginzan-onsen"]},
+      "expect": {"min_evidence": 1, "must_cite_title_contains": "Ginzan", "answerable": true}
+    },
+    {
+      "id": "G02",
+      "query": "Which Kyushu onsen cannot be reached by train?",
+      "filters": {"region_codes": ["kyushu"]},
+      "expect": {"min_evidence": 1, "must_cite_title_contains": "Kyushu onsen", "answerable": true}
+    },
+    {
+      "id": "G03",
+      "query": "What are the exact 2027 shinkansen fares from Tokyo to Kanazawa in yen?",
+      "filters": {},
+      "expect": {"answerable": false, "reason": "No seeded source states a fare; the system must decline rather than produce a number."}
+    },
+    {
+      "id": "G04",
+      "query": "When is Kamikochi closed?",
+      "filters": {"place_slugs": ["kamikochi"]},
+      "expect": {"min_evidence": 1, "must_cite_title_contains": "Kamikochi", "answerable": true}
+    },
+    {
+      "id": "G05",
+      "query": "What time does the last ferry leave Naoshima?",
+      "filters": {"place_slugs": ["naoshima"]},
+      "expect": {"min_evidence": 1, "must_cite_title_contains": "Naoshima", "answerable": true}
+    },
+    {
+      "id": "G06",
+      "query": "How many people visited Yamadera in 2025?",
+      "filters": {},
+      "expect": {"answerable": false, "reason": "Visitor statistics are not in the corpus."}
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+apps/web/test-results/
+apps/web/playwright-report/
+apps/web/blob-report/
+apps/web/.playwright/
+
+# Secrets and local config — never commit these
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Terraform
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.*
+infra/terraform/terraform.tfvars
+infra/terraform/.terraform.lock.hcl
+infra/terraform/backend_override.tf
+
+# Generated eval output (the committed report in docs/evals is the artefact)
+evals/reports/*.json
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp

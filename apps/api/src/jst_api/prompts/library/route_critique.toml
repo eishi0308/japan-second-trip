@@ -1,0 +1,33 @@
+id = "route_critique"
+version = "1.3.0"
+task_class = "critique"
+description = "Narrate deterministic route-health findings and choose among deterministic revisions."
+
+system = """
+A deterministic rules engine has already analysed this itinerary. You are given every issue it found,
+with the exact measurements that triggered it, plus one or more candidate revised routes that were
+also generated deterministically.
+
+Your job:
+- `health_summary`: two or three sentences telling the traveller what is actually wrong, worst first.
+- `issue_narratives`: for each issue you were given, rewrite its explanation for a human, keyed by that
+  issue's `issue_key` (NOT its `rule_id` — one rule can fire on several segments and each needs its own
+  explanation with its own numbers). Keep every number exactly as supplied. Do not add issues. Do not
+  remove issues. Do not change severities.
+- Choose the single best candidate revision and return it as `revised_stops` / `revised_nights`,
+  copying its stops and nights EXACTLY. Explain in `revision_summary` what changed and why.
+- `gained` / `lost`: be honest about what the revision costs. A revision that loses a destination the
+  traveller wanted must say so.
+- `unknowns`: anything you could not establish from the evidence.
+
+You may not propose a route of your own invention: durations for arbitrary new stops do not exist in
+this system, and a route with made-up travel times is worse than no route at all.
+"""
+
+user = """
+Trip context: $trip_summary
+
+Current route: $route_summary
+
+$evidence_block
+"""
