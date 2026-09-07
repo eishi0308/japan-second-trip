@@ -278,6 +278,8 @@ driving the real endpoints by hand.
 | `unknowns` showed the same line twice — the critique prompt is handed them, and the model echoes them back | order-preserving dedupe on the way out |
 | The E2E config defaulted to port 3010 while `scripts/dev.sh`, `.env.example`, the docs and CI all use 3000 — so the documented local flow (`dev.sh` then `make e2e`) hit an empty port, and CORS blocked the browser. CI passed only because it sets `E2E_BASE_URL` explicitly | Playwright defaults to 3000 like everything else |
 | 30 browser tests back to back exceed the API's own 60-requests-per-minute limit, failing whichever test crossed the line — it read as a mobile-only bug and is latent flakiness in CI's E2E job | the E2E environment raises the limit; the limiter keeps its own unit tests |
+| **The web container could never become healthy.** Docker sets `HOSTNAME` to the container id and Next's standalone server binds to whatever `HOSTNAME` says, so it listened on eth0 only and refused loopback. Every page served correctly through the published port, which is what hides it — anything gating on health (compose `depends_on`, an ECS/ALB target group) would have waited forever | `HOSTNAME=0.0.0.0` in the runtime stage |
+| `docker-compose.yml` allowed only `http://localhost:3000` as a CORS origin while `.env.example` lists both spellings — reaching the compose stack on `127.0.0.1` failed every client-side call with nothing logged server-side | both origins, as in `.env.example` |
 
 #### Why place matching gates on *kind*, not score
 
@@ -385,11 +387,8 @@ credible.
   `Narnia`→Tokyo, and silently costing a route through the wrong city is the
   worse failure. A real deployment should replace this with a geocoder that
   returns calibrated confidence.
-- **Docker images are unverified.** The Dockerfiles and `docker-compose.yml`
-  parse, and the web image's file layout was checked by staging it by hand, but
-  the daemon on this machine is broken (a disk-full event corrupted a containerd
-  blob) so no image has been built. CI builds them; that has not been observed.
-- **Terraform has not been applied** against a live AWS account. It validates.
+- **Terraform has not been applied** against a live AWS account — it validates
+  and plans, but no infrastructure has ever been created from it.
 - **Retrieval numbers flatter lexical search.** The corpus is small and
   hand-authored, so its vocabulary overlaps the golden queries more than a
   scraped corpus would. Re-measure after switching to a real embedding provider.

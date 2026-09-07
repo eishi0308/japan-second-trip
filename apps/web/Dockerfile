@@ -16,8 +16,15 @@ RUN npm run build
 
 FROM node:22-alpine AS runtime
 WORKDIR /app
+# HOSTNAME=0.0.0.0 is load-bearing. Docker sets HOSTNAME to the container id,
+# and Next's standalone server.js binds to whatever HOSTNAME says — so it
+# listened only on eth0 and refused loopback. The published port still worked,
+# which hides it: the container serves every page correctly and is still marked
+# unhealthy forever. Anything gating on health (compose depends_on, an ECS/ALB
+# target group) would never see this service come up.
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
+    HOSTNAME=0.0.0.0 \
     PORT=3000
 RUN addgroup -g 10001 -S jst && adduser -S -u 10001 -G jst jst
 
@@ -31,6 +38,6 @@ COPY --from=builder --chown=jst:jst /app/public ./public
 USER jst
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"
+  CMD node -e "require('http').get('http://127.0.0.1:3000/',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"
 
 CMD ["node", "server.js"]

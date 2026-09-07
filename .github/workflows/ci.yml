@@ -274,6 +274,41 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # Building an image proves it compiles, not that it runs. The web
+      # container once served every page correctly on its published port while
+      # never becoming healthy (Next bound to $HOSTNAME, so loopback was
+      # refused) — a build-only job cannot see that, and anything gating on
+      # health would have hung. So bring the real stack up and require all four
+      # services healthy.
+      - name: Start the stack and require it healthy
+        run: docker compose up -d --wait --wait-timeout 180
+
+      - name: Smoke the running stack
+        run: |
+          set -euo pipefail
+          for url in \
+            http://127.0.0.1:8000/health \
+            http://127.0.0.1:8000/ready \
+            http://127.0.0.1:3000/ \
+            http://127.0.0.1:3000/where-next \
+            http://127.0.0.1:3000/route-check; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$url")
+            echo "$code  $url"
+            [ "$code" = "200" ] || { echo "expected 200"; exit 1; }
+          done
+          # The seed must have run inside the container, not just the migrations.
+          docker compose exec -T db psql -U jst -d jst -tAc \
+            "select count(*) from regions" | grep -qE '^[1-9]' || {
+              echo "the API container did not seed the database"; exit 1; }
+
+      - name: Container logs on failure
+        if: failure()
+        run: docker compose logs --no-color --tail 200
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
+
   # ---------------------------------------------------------------------------
   # Deployment gate. Everything above must be green.
   # ---------------------------------------------------------------------------
