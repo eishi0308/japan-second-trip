@@ -35,10 +35,10 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          pip install -e ./packages/shared_schemas -e ./packages/travel_mcp -e "./apps/backend[dev]"
+          pip install -e ./packages/shared_schemas -e ./packages/travel_mcp -e "./backend[dev]"
       - name: Migrate and seed
         run: |
-          (cd apps/backend && alembic upgrade head)
+          (cd backend && alembic upgrade head)
           python scripts/seed.py
       - name: All suites
         run: python -m evals.run all
