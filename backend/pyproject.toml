@@ -60,7 +60,7 @@ where = ["src"]
 
 [tool.ruff]
 # Lint configuration lives at the repository root so every package shares it.
-extend = "../../ruff.toml"
+extend = "../ruff.toml"
 
 # Type-checking configuration lives in the repository root (mypy.ini) so the
 # whole monorepo shares one set of rules.

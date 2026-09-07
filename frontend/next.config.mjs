@@ -6,11 +6,12 @@ const nextConfig = {
   // that hydration then wipes — the page looks empty. The Dockerfile sets
   // NEXT_OUTPUT=standalone and runs `node .next/standalone/server.js`.
   output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
-  // Trace from this directory, not the monorepo root. node_modules lives here
-  // in both layouts, so the standalone output lands at the same path locally
-  // (apps/frontend/.next/standalone/server.js) and in the image — the Dockerfile's
-  // CMD depends on that being stable. Tracing from ../../ silently moved
-  // server.js to standalone/app/server.js inside the container.
+  // Trace from this directory, not the repository root. node_modules lives
+  // here, so the standalone output lands at the same path locally
+  // (frontend/.next/standalone/server.js) and in the image — the Dockerfile's
+  // CMD depends on that being stable. Tracing from the repo root silently
+  // moved server.js to standalone/<dir>/server.js inside the container, and
+  // the container then exited immediately with "cannot find module".
   outputFileTracingRoot: import.meta.dirname,
   poweredByHeader: false,
   async headers() {
