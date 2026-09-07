@@ -350,6 +350,40 @@ Deliberately not Kubernetes — see
 deploy safety model, and how to switch from demo to live providers one capability
 at a time.
 
+## Repository layout
+
+```
+japan-second-trip/
+├── apps/
+│   ├── backend/            FastAPI service — the whole product API
+│   │   ├── src/jst_api/
+│   │   │   ├── agents/     LangGraph graphs, nodes, state, guardrails
+│   │   │   ├── knowledge/  retrieval, RAG, reranking, embeddings
+│   │   │   ├── domain/     scoring, route rules, revisions — no I/O
+│   │   │   ├── db/         models, migrations, repositories
+│   │   │   ├── providers/  LLM, embeddings, places, transport adapters
+│   │   │   ├── api/        routers and schemas
+│   │   │   ├── security/   auth, rate limiting, injection defence
+│   │   │   └── observability/  tracing, cost and latency
+│   │   └── tests/          unit · integration · agents · security
+│   └── frontend/           Next.js app — the two flows and the admin console
+│       ├── src/app/        routes
+│       ├── src/components/
+│       └── tests/          unit (vitest) · e2e (playwright)
+├── packages/               code both apps import
+│   ├── shared_schemas/     the MCP tool contracts, one source of truth
+│   └── travel_mcp/         the MCP server and session
+├── docs/                   architecture, security, evals, 12 ADRs
+├── evals/                  datasets, runners and reports
+├── infra/                  Terraform for the AWS deployment
+├── scripts/                dev.sh, check.sh, seed.py, deploy.sh
+└── docker-compose.yml      db · redis · backend · frontend
+```
+
+The two apps are deliberately separate deployables that share only
+`packages/` — the frontend never imports backend code, and the contracts
+between them live in one place rather than being restated on each side.
+
 ## Documentation
 
 | | |

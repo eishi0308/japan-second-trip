@@ -1,7 +1,7 @@
 # Repo-wide lint and format configuration.
 #
-# At the root so it applies to every package: apps/api, packages/*, evals and
-# scripts. apps/api/pyproject.toml extends this rather than redefining it.
+# At the root so it applies to every package: apps/backend, packages/*, evals and
+# scripts. apps/backend/pyproject.toml extends this rather than redefining it.
 
 line-length = 100
 target-version = "py311"
@@ -33,13 +33,13 @@ ignore = [
 ]
 
 [lint.per-file-ignores]
-"apps/api/tests/*" = ["S", "B"]
-"apps/api/src/jst_api/seed/*" = ["E501"]
+"apps/backend/tests/*" = ["S", "B"]
+"apps/backend/src/jst_api/seed/*" = ["E501"]
 # Settings keys read as credentials to the scanner. They are configuration names
 # with non-secret development defaults, and deployed environments refuse those
 # defaults outright — see security/auth._assert_admin_token_safe.
-"apps/api/src/jst_api/core/config.py" = ["S105"]
-"apps/api/src/jst_api/security/auth.py" = ["S105"]
+"apps/backend/src/jst_api/core/config.py" = ["S105"]
+"apps/backend/src/jst_api/security/auth.py" = ["S105"]
 "evals/*" = ["S"]
 
 [lint.isort]

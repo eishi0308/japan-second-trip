@@ -12,12 +12,12 @@ run() {
   if "$@"; then echo "    ok"; else echo "    FAILED"; FAILED+=("$1"); fi
 }
 
-run "ruff format"   $PY/ruff format --check apps/api/src apps/api/tests evals packages scripts
-run "ruff lint"     $PY/ruff check apps/api/src apps/api/tests evals packages scripts
-run "mypy"          $PY/mypy apps/api/src/jst_api packages/shared_schemas/src packages/travel_mcp/src
-run "pytest"        $PY/python -m pytest apps/api/tests -q
-run "web typecheck" npm --prefix apps/web run typecheck
-run "web unit"      npm --prefix apps/web test
+run "ruff format"   $PY/ruff format --check apps/backend/src apps/backend/tests evals packages scripts
+run "ruff lint"     $PY/ruff check apps/backend/src apps/backend/tests evals packages scripts
+run "mypy"          $PY/mypy apps/backend/src/jst_api packages/shared_schemas/src packages/travel_mcp/src
+run "pytest"        $PY/python -m pytest apps/backend/tests -q
+run "web typecheck" npm --prefix apps/frontend run typecheck
+run "web unit"      npm --prefix apps/frontend test
 
 echo ""
 if [[ ${#FAILED[@]} -eq 0 ]]; then

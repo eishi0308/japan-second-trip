@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 FROM node:22-alpine AS deps
 WORKDIR /app
-COPY apps/web/package.json apps/web/package-lock.json* ./
+COPY apps/frontend/package.json apps/frontend/package-lock.json* ./
 RUN npm ci --no-audit --no-fund
 
 FROM node:22-alpine AS builder
@@ -11,7 +11,7 @@ ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL \
     NEXT_OUTPUT=standalone \
     NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
-COPY apps/web .
+COPY apps/frontend .
 RUN npm run build
 
 FROM node:22-alpine AS runtime

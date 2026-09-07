@@ -11,7 +11,7 @@ Every file path is real; every test name runs.
 
 | Skill | Implementation | File / module | Product problem | Why this way | Verified by |
 | --- | --- | --- | --- | --- | --- |
-| **Python** | Async throughout, strict typing, domain/infra/API separation | `apps/api/src/jst_api/**` | — | 3.12 for `StrEnum`, `tomllib`, better generics | `ruff`, `mypy`, 165 tests |
+| **Python** | Async throughout, strict typing, domain/infra/API separation | `apps/backend/src/jst_api/**` | — | 3.12 for `StrEnum`, `tomllib`, better generics | `ruff`, `mypy`, 165 tests |
 | **FastAPI** | 26 endpoints, DI via `Depends`, typed error envelope, lifespan-built singletons | `api/v1/*.py`, `api/deps.py`, `api/errors.py`, `main.py` | Serve analyses, trips, evidence, admin | Async-native, Pydantic-native, OpenAPI for free | `tests/integration/test_api.py` (21 tests) |
 | **Backend API design** | Resource-shaped REST, correct status codes, one error envelope, capability-token trip access | `api/v1/analyses.py`, `api/schemas.py` | A frontend and future clients | Wire contract separate from domain so each can change | `test_unknown_analysis_is_404`, `test_invalid_body_is_422_with_detail` |
 | **LLM APIs** | Anthropic (`messages.parse`) and OpenAI adapters, plus a working demo provider; fallback wrapper | `providers/llm.py` | Parse itineraries, explain rankings | Two vendors so no single unavailable provider stops the product | `test_a_failing_primary_falls_back_and_is_flagged` |
@@ -64,9 +64,9 @@ Every file path is real; every test name runs.
 | Skill | Implementation | File / module | Product problem | Why this way | Verified by |
 | --- | --- | --- | --- | --- | --- |
 | **External API integration** | 6 provider protocols, live + demo adapters, timeouts, retries, caching, tracing | `providers/**` | Places, transport, weather, LLM, embeddings | Demo mode is first-class so nothing requires credentials | `TestTransportTools`; `/providers` discloses which is live |
-| **Testing** | 182 backend, 21 frontend unit, 15 E2E × 2 viewports; both dialects in CI | `apps/api/tests/**`, `apps/web/tests/**` | Confidence to change things | Real database, real graphs, real MCP — only HTTP is faked | `make test`, `make e2e` |
+| **Testing** | 182 backend, 21 frontend unit, 15 E2E × 2 viewports; both dialects in CI | `apps/backend/tests/**`, `apps/frontend/tests/**` | Confidence to change things | Real database, real graphs, real MCP — only HTTP is faked | `make test`, `make e2e` |
 | **CI/CD** | Lint → types → tests (2 dialects) → security → CI evals → E2E → Docker → gated deploy | `.github/workflows/ci.yml`, `nightly-evals.yml` | Every gate green before deploy | CI runs a fast eval subset; the full suite is nightly | workflow definitions |
-| **Docker** | Multi-stage, non-root, health-checked images for both apps; one-command compose | `apps/api/Dockerfile`, `apps/web/Dockerfile`, `docker-compose.yml` | Reproducible environments | Entrypoint migrates and seeds, both idempotent | `docker compose up` |
+| **Docker** | Multi-stage, non-root, health-checked images for both apps; one-command compose | `apps/backend/Dockerfile`, `apps/frontend/Dockerfile`, `docker-compose.yml` | Reproducible environments | Entrypoint migrates and seeds, both idempotent | `docker compose up` |
 | **AWS** | ECS Fargate, RDS+pgvector, ElastiCache, S3, Secrets Manager, CloudWatch — all Terraform | `infra/terraform/*.tf` | Deployable MVP | Fargate over Kubernetes for two services | `terraform validate` passes |
 | **PII protection** | Redaction in logs and traces; free text sanitised; secrets never logged; PII excluded from cache keys | `core/logging.py`, `security/injection.py`, `domain/trip.digest_payload` | Traveller text is personal | Over-redaction destroys the trace, so structural ids survive | `TestRedaction` (4 tests) |
 | **Latency optimisation** | Content-addressed caching, model routing, single model call per graph, bounded context | across | Fast and cheap enough to run | The cheapest call is the one not made | production eval |

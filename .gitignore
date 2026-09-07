@@ -15,10 +15,10 @@ node_modules/
 .next/
 out/
 *.tsbuildinfo
-apps/web/test-results/
-apps/web/playwright-report/
-apps/web/blob-report/
-apps/web/.playwright/
+apps/frontend/test-results/
+apps/frontend/playwright-report/
+apps/frontend/blob-report/
+apps/frontend/.playwright/
 
 # Secrets and local config — never commit these
 .env

@@ -19,7 +19,7 @@ if [[ ! -d .venv ]]; then
   echo "==> creating the Python environment"
   python3.12 -m venv .venv
   ./.venv/bin/pip install --quiet --upgrade pip
-  ./.venv/bin/pip install --quiet -e ./packages/shared_schemas -e ./packages/travel_mcp -e "./apps/api[dev]"
+  ./.venv/bin/pip install --quiet -e ./packages/shared_schemas -e ./packages/travel_mcp -e "./apps/backend[dev]"
 fi
 
 echo "==> starting PostgreSQL and Redis"
@@ -32,22 +32,22 @@ if [[ "$RESET" == "--reset" ]]; then
 fi
 
 echo "==> applying migrations"
-(cd apps/api && "$ROOT/.venv/bin/alembic" upgrade head)
+(cd apps/backend && "$ROOT/.venv/bin/alembic" upgrade head)
 
 echo "==> seeding demo data (idempotent)"
 ./.venv/bin/python scripts/seed.py
 
 echo "==> starting the API on :8000"
-./.venv/bin/python -m uvicorn jst_api.main:app --app-dir apps/api/src --reload --port 8000 &
+./.venv/bin/python -m uvicorn jst_api.main:app --app-dir apps/backend/src --reload --port 8000 &
 API_PID=$!
 
-if [[ ! -d apps/web/node_modules ]]; then
+if [[ ! -d apps/frontend/node_modules ]]; then
   echo "==> installing web dependencies"
-  (cd apps/web && npm install --no-audit --no-fund)
+  (cd apps/frontend && npm install --no-audit --no-fund)
 fi
 
 echo "==> starting the web app on :3000"
-(cd apps/web && npm run dev) &
+(cd apps/frontend && npm run dev) &
 WEB_PID=$!
 
 trap 'kill $API_PID $WEB_PID 2>/dev/null || true' EXIT INT TERM

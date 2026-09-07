@@ -8,7 +8,7 @@ const nextConfig = {
   output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
   // Trace from this directory, not the monorepo root. node_modules lives here
   // in both layouts, so the standalone output lands at the same path locally
-  // (apps/web/.next/standalone/server.js) and in the image — the Dockerfile's
+  // (apps/frontend/.next/standalone/server.js) and in the image — the Dockerfile's
   // CMD depends on that being stable. Tracing from ../../ silently moved
   // server.js to standalone/app/server.js inside the container.
   outputFileTracingRoot: import.meta.dirname,

@@ -28,7 +28,7 @@ def _load_backend():
     except ImportError as exc:  # pragma: no cover - deployment misconfiguration
         raise SystemExit(
             f"Could not import MCP backend '{module_name}': {exc}\n"
-            "Install the API package (pip install -e apps/api) or set JST_MCP_BACKEND."
+            "Install the API package (pip install -e apps/backend) or set JST_MCP_BACKEND."
         ) from exc
     return getattr(module, attr)()
 
