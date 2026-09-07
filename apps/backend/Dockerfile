@@ -19,16 +19,16 @@ ENV PATH="/opt/venv/bin:$PATH"
 # dependency layer.
 COPY packages/shared_schemas/pyproject.toml packages/shared_schemas/
 COPY packages/travel_mcp/pyproject.toml packages/travel_mcp/
-COPY apps/api/pyproject.toml apps/api/
+COPY apps/backend/pyproject.toml apps/backend/
 
 COPY packages/shared_schemas packages/shared_schemas
 COPY packages/travel_mcp packages/travel_mcp
-COPY apps/api apps/api
+COPY apps/backend apps/backend
 
 RUN pip install --upgrade pip setuptools wheel \
  && pip install ./packages/shared_schemas \
  && pip install ./packages/travel_mcp \
- && pip install ./apps/api
+ && pip install ./apps/backend
 
 
 FROM python:3.12-slim AS runtime
@@ -45,8 +45,8 @@ RUN apt-get update \
 
 COPY --from=builder /opt/venv /opt/venv
 WORKDIR /app
-COPY --chown=jst:jst apps/api/src /app/src
-COPY --chown=jst:jst apps/api/alembic.ini /app/alembic.ini
+COPY --chown=jst:jst apps/backend/src /app/src
+COPY --chown=jst:jst apps/backend/alembic.ini /app/alembic.ini
 COPY --chown=jst:jst scripts /app/scripts
 COPY --chown=jst:jst evals /app/evals
 
@@ -58,6 +58,6 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
 
 # Migrations and seeding run in the entrypoint so a fresh environment comes up
 # usable; both are idempotent.
-COPY --chown=jst:jst apps/api/docker-entrypoint.sh /app/docker-entrypoint.sh
+COPY --chown=jst:jst apps/backend/docker-entrypoint.sh /app/docker-entrypoint.sh
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["uvicorn", "jst_api.main:app", "--host", "0.0.0.0", "--port", "8000", "--app-dir", "/app/src"]

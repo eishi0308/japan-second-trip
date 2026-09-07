@@ -101,7 +101,7 @@ travel-intelligence-mcp
 
 ## Testing
 
-`apps/api/tests/integration/test_mcp.py` — 16 tests over a real session: schema
+`apps/backend/tests/integration/test_mcp.py` — 16 tests over a real session: schema
 publication, flat parameters, argument rejection, unknown-tool rejection,
 verified-over-estimate preference, the car-only hop, permission enforcement,
 budget enforcement, and trip-state round-tripping.

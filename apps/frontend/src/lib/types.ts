@@ -2,7 +2,7 @@
  * Wire types mirroring the API's Pydantic schemas.
  *
  * Hand-maintained rather than generated, so the frontend can be read on its own
- * — but every field name here exists in `apps/api/src/jst_api/domain/results.py`
+ * — but every field name here exists in `apps/backend/src/jst_api/domain/results.py`
  * and `api/schemas.py`, and the contract test in `tests/contract.test.ts`
  * fails if the API drifts.
  */

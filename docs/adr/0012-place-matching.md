@@ -90,7 +90,7 @@ same failure with more steps.
 
 ## Evidence
 
-`apps/api/tests/integration/test_place_resolution.py` pins all of it: the match
+`apps/backend/tests/integration/test_place_resolution.py` pins all of it: the match
 kinds, the refusal, the suggestion reaching the user, the real stops still being
 analysed, and — guarding against over-correction — that aliases and substrings
 still resolve.

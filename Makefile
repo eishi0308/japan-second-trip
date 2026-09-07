@@ -12,8 +12,8 @@ help: ## Show this help
 setup: ## Create the Python env and install everything
 	python3.12 -m venv .venv
 	$(PY)/pip install --upgrade pip
-	$(PY)/pip install -e ./packages/shared_schemas -e ./packages/travel_mcp -e "./apps/api[dev]"
-	cd apps/web && npm install --no-audit --no-fund
+	$(PY)/pip install -e ./packages/shared_schemas -e ./packages/travel_mcp -e "./apps/backend[dev]"
+	cd apps/frontend && npm install --no-audit --no-fund
 
 .PHONY: dev
 dev: ## Start database, API and web
@@ -25,7 +25,7 @@ reset: ## Drop the database, migrate and re-seed
 
 .PHONY: migrate
 migrate: ## Apply database migrations
-	cd apps/api && ../../$(PY)/alembic upgrade head
+	cd apps/backend && ../../$(PY)/alembic upgrade head
 
 .PHONY: seed
 seed: ## Seed the demo catalogue and evidence
@@ -33,19 +33,19 @@ seed: ## Seed the demo catalogue and evidence
 
 .PHONY: test
 test: ## Run the backend test suite
-	$(PY)/python -m pytest apps/api/tests -q
+	$(PY)/python -m pytest apps/backend/tests -q
 
 .PHONY: test-cov
 test-cov: ## Backend tests with a coverage report
-	$(PY)/python -m pytest apps/api/tests -q --cov=jst_api --cov-report=term-missing
+	$(PY)/python -m pytest apps/backend/tests -q --cov=jst_api --cov-report=term-missing
 
 .PHONY: test-web
 test-web: ## Frontend unit tests
-	npm --prefix apps/web test
+	npm --prefix apps/frontend test
 
 .PHONY: e2e
 e2e: ## Playwright end-to-end tests (needs the stack running)
-	cd apps/web && npx playwright test
+	cd apps/frontend && npx playwright test
 
 .PHONY: lint
 lint: ## Lint and type-check everything
@@ -53,8 +53,8 @@ lint: ## Lint and type-check everything
 
 .PHONY: format
 format: ## Auto-format Python
-	$(PY)/ruff format apps/api/src apps/api/tests evals packages scripts
-	$(PY)/ruff check --fix apps/api/src apps/api/tests evals packages scripts
+	$(PY)/ruff format apps/backend/src apps/backend/tests evals packages scripts
+	$(PY)/ruff check --fix apps/backend/src apps/backend/tests evals packages scripts
 
 .PHONY: evals
 evals: ## Run every eval suite
@@ -83,4 +83,4 @@ down: ## Stop the stack
 .PHONY: clean
 clean: ## Remove build and cache artefacts
 	find . -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
-	rm -rf .pytest_cache .ruff_cache .mypy_cache apps/web/.next apps/web/test-results
+	rm -rf .pytest_cache .ruff_cache .mypy_cache apps/frontend/.next apps/frontend/test-results

@@ -31,13 +31,18 @@ services:
   api:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
+      dockerfile: apps/backend/Dockerfile
     environment:
       DATABASE_URL: postgresql+asyncpg://jst:jst@db:5432/jst
       REDIS_URL: redis://redis:6379/0
       ENVIRONMENT: local
       LOG_JSON: "false"
-      CORS_ORIGINS: http://localhost:3000
+      # Both spellings, as in .env.example. A browser that reaches the web
+      # app on 127.0.0.1 sends that as its Origin, and listing only the
+      # localhost form fails every client-side call with no server-side error.
+      CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+      # Production default, overridable for test runs that drive the UI hard.
+      RATE_LIMIT_PER_MINUTE: "${RATE_LIMIT_PER_MINUTE:-60}"
       ADMIN_TOKEN: ${ADMIN_TOKEN:-dev-admin-token}
       LLM_PROVIDER: ${LLM_PROVIDER:-demo}
       EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-demo}
@@ -61,7 +66,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: apps/frontend/Dockerfile
       args:
         NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
     environment:

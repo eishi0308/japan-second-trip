@@ -21,8 +21,8 @@ aws ecr get-login-password --region "$AWS_REGION" \
   | docker login --username AWS --password-stdin "$REGISTRY"
 
 echo "==> building images"
-docker build -f apps/api/Dockerfile -t "${REGISTRY}/${NAME}-api:${IMAGE_TAG}" .
-docker build -f apps/web/Dockerfile \
+docker build -f apps/backend/Dockerfile -t "${REGISTRY}/${NAME}-api:${IMAGE_TAG}" .
+docker build -f apps/frontend/Dockerfile \
   --build-arg "NEXT_PUBLIC_API_BASE_URL=${PUBLIC_API_URL:-http://localhost:8000}" \
   -t "${REGISTRY}/${NAME}-web:${IMAGE_TAG}" .
 
