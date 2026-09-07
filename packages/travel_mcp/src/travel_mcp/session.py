@@ -105,9 +105,22 @@ class TravelMcpSession:
                     await self._streams_cm.__aexit__(None, None, None)
         return False
 
+    def _require_session(self) -> ClientSession:
+        """Return the live session, or fail clearly outside the context manager.
+
+        Returns it rather than just checking, so callers get a non-optional
+        value and the type checker needs no narrowing assert. An assert would
+        vanish under ``python -O`` and the next line would raise
+        ``AttributeError: 'NoneType' object has no attribute 'call_tool'``,
+        which says nothing about the actual mistake.
+        """
+        if self._session is None:
+            raise RuntimeError("TravelMcpSession must be entered before use: `async with session:`")
+        return self._session
+
     async def list_tools(self) -> list[dict[str, Any]]:
-        assert self._session is not None
-        result = await self._session.list_tools()
+        session = self._require_session()
+        result = await session.list_tools()
         return [
             {
                 "name": t.name,
@@ -120,8 +133,8 @@ class TravelMcpSession:
         ]
 
     async def call(self, tool: str, arguments: dict[str, Any]) -> McpCallResult:
-        assert self._session is not None, "TravelMcpSession must be entered before use"
-        result = await self._session.call_tool(tool, arguments)
+        session = self._require_session()
+        result = await session.call_tool(tool, arguments)
 
         texts = [
             getattr(block, "text", "") for block in result.content if getattr(block, "text", None)

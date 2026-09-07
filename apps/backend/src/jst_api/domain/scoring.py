@@ -42,7 +42,15 @@ WEIGHTS: dict[str, float] = {
     "novelty": 0.06,
     "practicality": 0.04,
 }
-assert abs(sum(WEIGHTS.values()) - 1.0) < 1e-9, "fit-score weights must sum to 1.0"
+# Not an assert: `python -O` strips those, and this invariant is the reason the
+# fit score is interpretable as "out of 100" at all. If it ever breaks, every
+# score and every published rubric number is silently wrong, so it must fail
+# loudly on import in every interpreter mode.
+if abs(sum(WEIGHTS.values()) - 1.0) > 1e-9:
+    raise ValueError(
+        f"fit-score weights must sum to 1.0, got {sum(WEIGHTS.values())!r} — "
+        "the score is presented out of 100 and the rubric is documented as such."
+    )
 
 #: score -> label thresholds (inclusive lower bound)
 LABEL_THRESHOLDS: list[tuple[float, FitLabel]] = [

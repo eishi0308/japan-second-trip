@@ -221,7 +221,11 @@ class ReviewService:
     async def _resume_one(
         self, analysis: Analysis, task: HumanReviewTask, resolved_value: str, reviewer: str
     ) -> str | None:
-        assert self._analysis_service is not None
+        if self._analysis_service is None:
+            raise RuntimeError(
+                "ReviewService was constructed without an AnalysisService; "
+                "a resolved review cannot be resumed without one."
+            )
         payload = dict(analysis.input_payload or {})
         resolution = {
             "subject": task.subject,
