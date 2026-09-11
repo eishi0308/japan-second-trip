@@ -29,12 +29,6 @@ function Hero() {
         <p className="mt-6 max-w-measure text-[1.06rem] leading-relaxed text-ink-700">
           Choose the right next Japan — and make sure the trip actually works.
         </p>
-        <p className="prose-measure mt-4">
-          Tohoku, Nagano, Hokuriku, Shikoku and Kyushu all exist. The hard part is knowing which one
-          fits <em>this</em> trip: your dates, your nights, where you fly in and out, whether you&rsquo;ll
-          drive. And then whether the itinerary you&rsquo;ve drafted survives contact with the last bus
-          of the day.
-        </p>
 
         <div className="mt-9 flex flex-col gap-3 sm:flex-row">
           <Link href="/where-next" className="btn-primary">
@@ -46,31 +40,18 @@ function Hero() {
         </div>
       </div>
 
-      <dl className="mt-16 grid gap-x-10 gap-y-8 border-t border-ink-200 pt-10 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="mt-16 grid gap-x-10 gap-y-5 border-t border-ink-200 pt-10 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          {
-            title: "Decision support, not a list",
-            body: "A ranked comparison with the trade-offs stated. The product will tell you not to go somewhere on this trip.",
-          },
-          {
-            title: "Evidence you can open",
-            body: "Every operational claim carries its source, its type, and the date it was last verified.",
-          },
-          {
-            title: "Real transport, not vibes",
-            body: "Durations come from verified records or clearly-labelled estimates. Never from a language model.",
-          },
-          {
-            title: "It says when it doesn't know",
-            body: "Where sources disagree or a fact has gone stale, a person checks it before you see a number.",
-          },
+          "Decision support, not a list",
+          "Evidence you can open",
+          "Real transport, not vibes",
+          "It says when it doesn't know",
         ].map((item) => (
-          <div key={item.title}>
-            <dt className="font-serif text-[1.02rem] text-ink-900">{item.title}</dt>
-            <dd className="mt-1.5 text-[0.9rem] leading-relaxed text-ink-600">{item.body}</dd>
-          </div>
+          <li key={item} className="font-serif text-[1.02rem] leading-snug text-ink-900">
+            {item}
+          </li>
         ))}
-      </dl>
+      </ul>
     </section>
   );
 }
@@ -82,10 +63,10 @@ function HowItWorks() {
       eyebrow: "Path A",
       title: "I don't know where to go next",
       steps: [
-        "Tell us the trip: dates, nights, in and out, how you like to travel",
-        "Every region is scored against your constraints by a fixed rubric",
-        "Regions that can't work are ruled out, with the constraint named",
-        "The survivors are compared, with evidence and trade-offs",
+        "Tell us the trip",
+        "Every region scored by a fixed rubric",
+        "Impossible regions ruled out, constraint named",
+        "The survivors compared, with evidence",
       ],
       cta: "Start with the trip",
     },
@@ -94,10 +75,10 @@ function HowItWorks() {
       eyebrow: "Path B",
       title: "I already have a route. Check it.",
       steps: [
-        "Paste the itinerary as you'd write it to a friend, or enter stops",
-        "Places are resolved and every hop is costed with real transport data",
-        "A rules engine grades travel burden, churn, connections and closures",
-        "You get the problems, what's already working, and a costed alternative",
+        "Paste the itinerary, or enter stops",
+        "Every hop costed with real transport data",
+        "Travel burden, churn and closures graded",
+        "Problems, strengths, and a costed alternative",
       ],
       cta: "Check an itinerary",
     },
@@ -141,30 +122,12 @@ function Principles() {
       </h2>
       <div className="mt-9 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
         {[
-          {
-            k: "Deterministic code",
-            v: "Fit scores, travel load, night counts, route-health severities. Same input, same answer, every time — and you can read the rubric.",
-          },
-          {
-            k: "Verified data & tools",
-            v: "Durations, booking lead times, closure windows, last departures. From records with a verification date, or labelled as estimates.",
-          },
-          {
-            k: "Retrieval",
-            v: "Access caveats and booking mechanics that resist normalising into columns — found by combined keyword and semantic search.",
-          },
-          {
-            k: "The language model",
-            v: "Reads your itinerary, and explains what the deterministic layer found. It cannot change a score or invent a route.",
-          },
-          {
-            k: "A person",
-            v: "When approved sources disagree, or a critical fact has gone stale, it goes to a human before it reaches you.",
-          },
-          {
-            k: "Nothing hidden",
-            v: "Confidence, assumptions, unknowns and demo-data labels are shown, not buried. Negative findings are not softened.",
-          },
+          { k: "Deterministic code", v: "Scores and severities. Same input, same answer." },
+          { k: "Verified data & tools", v: "Durations and booking rules, with a verification date." },
+          { k: "Retrieval", v: "Access caveats, by keyword and semantic search." },
+          { k: "The language model", v: "Explains. It cannot change a score or invent a route." },
+          { k: "A person", v: "Stale or conflicting facts go to a human first." },
+          { k: "Nothing hidden", v: "Confidence, assumptions and unknowns are shown." },
         ].map((item) => (
           <div key={item.k} className="border-l border-ink-200 pl-4">
             <p className="font-serif text-[1rem] text-ink-900">{item.k}</p>
