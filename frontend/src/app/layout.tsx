@@ -21,7 +21,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    // Browser extensions (screen recorders, password managers, translators)
+    // write their own attributes onto <html> before React hydrates, which
+    // React reports as a hydration mismatch the app cannot fix. This
+    // suppresses it for this element only — mismatches anywhere inside the
+    // tree, the ones that would be our bug, still surface.
+    <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen bg-paper">
         <a
           href="#main"
