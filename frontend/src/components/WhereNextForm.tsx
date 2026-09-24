@@ -258,7 +258,7 @@ function TripStep({ form, set }: { form: FormState; set: Setter }) {
             onChange={(e) => set("total_nights", e.target.value)}
           />
         </Field>
-        <Field label="Nights for the regional leg" hint="The part that isn't Tokyo or Kyoto.">
+        <Field label="Nights in the region" hint="Nights outside Tokyo, Kyoto and Osaka.">
           <input
             type="number"
             min={1}

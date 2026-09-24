@@ -35,7 +35,7 @@ test.describe("Where Next", () => {
     await page.goto("/where-next");
 
     await page.getByLabel("Total nights in Japan").fill("12");
-    await page.getByLabel("Nights for the regional leg").fill("3");
+    await page.getByLabel("Nights in the region").fill("3");
     await page.getByRole("button", { name: "Continue" }).click();
     await page.getByRole("button", { name: "Continue" }).click();
 
