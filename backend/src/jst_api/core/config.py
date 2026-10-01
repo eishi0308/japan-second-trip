@@ -53,8 +53,8 @@ class Settings(BaseSettings):
 
     # ---- LLM ---------------------------------------------------------------
     llm_provider: Literal["demo", "openai", "anthropic"] = "demo"
-    llm_model_reasoning: str = "gpt-4o"
-    llm_model_fast: str = "gpt-4o-mini"
+    llm_model_reasoning: str = "claude-opus-5"
+    llm_model_fast: str = "claude-haiku-4-5"
     llm_fallback_provider: Literal["demo", "openai", "anthropic"] | None = "demo"
     llm_timeout_seconds: float = 45.0
     llm_max_retries: int = 2

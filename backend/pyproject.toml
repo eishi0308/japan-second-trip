@@ -34,6 +34,8 @@ dependencies = [
   "passlib[bcrypt]>=1.7.4",
   "stripe>=11.3",
   "numpy>=1.26",
+  "anthropic>=1.8",
+  "openai>=1.57",
 ]
 
 [project.optional-dependencies]
@@ -48,7 +50,6 @@ dev = [
 ]
 llm = [
   "langchain-openai>=0.2.10",
-  "openai>=1.57",
 ]
 
 [build-system]
