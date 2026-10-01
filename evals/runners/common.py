@@ -176,13 +176,41 @@ class Harness:
     embeddings: Any
 
 
-async def build_harness(*, demo: bool = True) -> Harness:
+async def _require_matching_corpus(session_factory: Any, embedder: Any) -> None:
+    """Refuse to score a corpus embedded by a different model than the queries.
+
+    Vectors from two embedders share a column but not a space: cosine similarity
+    between them is noise, and the suite would report it as a retrieval score.
+    """
+    from sqlalchemy import select
+
+    from jst_api.db.models import EvidenceChunk
+
+    async with session_factory() as session:
+        stored = set(
+            (await session.scalars(select(EvidenceChunk.embedding_model).distinct())).all()
+        )
+    expected = getattr(embedder, "model", "unknown")
+    if stored and stored != {expected}:
+        raise SystemExit(
+            f"The corpus was embedded with {sorted(stored)} but this run embeds queries with "
+            f"'{expected}'. Re-seed the database with that embedder, or switch between the demo "
+            "and configured providers with --live."
+        )
+
+
+async def build_harness(*, demo: bool | None = None) -> Harness:
     """Bootstrap the app's own machinery, forced onto demo providers by default.
 
     Evals must be reproducible on any machine, including CI where no credentials
     exist. Running them against whatever provider happens to be configured would
     make a green run meaningless.
+
+    ``EVALS_LIVE=1`` (``python -m evals.run <suite> --live``) opts into the
+    configured providers instead, for re-measuring after a provider change.
     """
+    if demo is None:
+        demo = os.environ.get("EVALS_LIVE") != "1"
     os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://jst:jst@localhost:5433/jst")
     os.environ.setdefault("LOG_LEVEL", "ERROR")
 
@@ -197,6 +225,7 @@ async def build_harness(*, demo: bool = True) -> Harness:
     build_engine(settings)
     session_factory = get_sessionmaker()
     registry = (build_demo_registry if demo else build_registry)(session_factory, settings)
+    await _require_matching_corpus(session_factory, registry.embeddings)
     return Harness(
         settings=settings,
         session_factory=session_factory,

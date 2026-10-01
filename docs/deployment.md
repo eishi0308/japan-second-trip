@@ -77,7 +77,14 @@ evals:
 
 1. `EMBEDDING_PROVIDER=openai` + `OPENAI_API_KEY`, then **re-ingest** — existing
    vectors were produced by a different embedder and cannot be compared with new
-   ones. Re-run the retrieval eval and compare against the committed baseline.
+   ones. Re-run the retrieval eval and compare against the committed baseline:
+   `python -m evals.run retrieval --live`, then `EVALS_LIVE=1 python -m
+   evals.runners.sweep`. The fusion weights were swept for the demo embedder and
+   do not carry over. Measured on 2026-10-01 with `text-embedding-3-small`:
+   vector-only MRR 0.785 → 0.975, and hybrid at `RRF_K=40`,
+   `RETRIEVAL_DENSE_WEIGHT=1.5` reaches MRR 0.942 / NDCG@8 0.881 with the primary
+   source in the top 5 for 20/20 (demo baseline: 0.887 / 0.813). The best dense
+   weight sat at the top of the swept range, so widen the range before trusting it.
 2. `LLM_PROVIDER=anthropic|openai` + key. Run the agent and RAG evals; watch cost
    per run in `/admin/metrics`.
 3. `PLACE_PROVIDER` / `TRANSPORT_PROVIDER` / `WEATHER_PROVIDER`. Verified seeded

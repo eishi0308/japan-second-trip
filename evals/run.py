@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
 import sys
 from pathlib import Path
 
@@ -44,10 +45,13 @@ async def _run_suite(name: str, *, persist: bool) -> dict:
     print(f"\n[{name}]")
     if name == "retrieval":
         results = await retrieval.run(persist=persist)
-        path = ROOT / "docs" / "evals" / "retrieval-comparison.md"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(retrieval.build_comparison_markdown(results), encoding="utf-8")
-        print(f"  report: {path.relative_to(ROOT)}")
+        # The committed report is the reproducible demo baseline; a live run is
+        # compared against it, never written over it.
+        if os.environ.get("EVALS_LIVE") != "1":
+            path = ROOT / "docs" / "evals" / "retrieval-comparison.md"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(retrieval.build_comparison_markdown(results), encoding="utf-8")
+            print(f"  report: {path.relative_to(ROOT)}")
         # Same rule as the report: primary-in-top-5, then MRR.
         best = max(results.values(), key=lambda r: (r.passed, r.metrics["mrr"]))
         return {
@@ -105,5 +109,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run Japan Second Trip evals")
     parser.add_argument("target", nargs="?", default="ci", help="all | ci | sweep | <suite>")
     parser.add_argument("--no-persist", action="store_true", help="do not write eval_runs rows")
+    parser.add_argument(
+        "--live", action="store_true", help="use the configured providers instead of demo"
+    )
     args = parser.parse_args()
+    if args.live:
+        os.environ["EVALS_LIVE"] = "1"
     raise SystemExit(asyncio.run(main(args.target, persist=not args.no_persist)))
