@@ -605,11 +605,21 @@ class OpenAILLMProvider:
         model = model or self._settings.llm_model_reasoning
         started = time.perf_counter()
 
+        # Not `strict`: strict mode rejects open-ended maps (`dict[str, str]`),
+        # which several output schemas use. The schema still steers the model,
+        # and validation happens here so `complete_with_repair` sees failures.
         async def _call():
-            return await self._client.beta.chat.completions.parse(
+            return await self._client.chat.completions.create(
                 model=model,
                 messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
-                response_format=schema,
+                response_format={
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": schema.__name__,
+                        "schema": schema.model_json_schema(),
+                        "strict": False,
+                    },
+                },
                 temperature=temperature
                 if temperature is not None
                 else self._settings.llm_temperature,
@@ -623,9 +633,10 @@ class OpenAILLMProvider:
             policy=self._policy,
             breaker=self._breaker,
         )
-        parsed = resp.choices[0].message.parsed
-        if parsed is None:
+        content = resp.choices[0].message.content
+        if not content:
             raise SchemaRepairFailed("OpenAI returned no parsed output", details={"model": model})
+        parsed = schema.model_validate_json(content)
         usage = LLMUsage(
             model=model,
             provider=self.name,
