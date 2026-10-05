@@ -17,7 +17,8 @@ export function RegionCard({
 
   return (
     <article
-      className={`card overflow-hidden ${
+      id={`region-${region.region_code}`}
+      className={`card scroll-mt-24 overflow-hidden ${
         variant === "recommended" ? "border-ink-900 ring-1 ring-ink-900" : ""
       } ${rejected ? "border-dashed bg-ink-50/40" : ""}`}
     >

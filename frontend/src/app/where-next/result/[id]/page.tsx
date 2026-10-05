@@ -5,6 +5,7 @@ import { ConfidenceNotice } from "@/components/ConfidenceNotice";
 import { EvidenceList } from "@/components/EvidenceList";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
 import { RegionCard } from "@/components/RegionCard";
+import { RegionComparison } from "@/components/RegionComparison";
 import { EmptyState, SectionHeading } from "@/components/primitives";
 import { ApiRequestError, api } from "@/lib/api";
 
@@ -39,6 +40,14 @@ export default async function WhereNextResultPage({ params }: { params: Promise<
       </div>
 
       <div className="mt-8 max-w-3xl">
+        <RegionComparison
+          recommended={result.recommended}
+          alternatives={result.alternatives}
+          rejected={result.rejected}
+        />
+      </div>
+
+      <div className="mt-6 max-w-3xl">
         <ConfidenceNotice
           confidence={result.confidence}
           humanReviewRequired={result.human_review_required}
