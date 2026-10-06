@@ -52,7 +52,10 @@ test.describe("Where Next", () => {
     const rejectedSection = page.getByRole("heading", { name: "Not recommended for this trip" });
     await expect(rejectedSection).toBeVisible();
     await expect(page.getByRole("heading", { name: "Kyushu", exact: true })).toBeVisible();
-    await expect(page.getByText(/needs at least 4 nights/)).toBeVisible();
+    // Stated twice on purpose: once in the at-a-glance ranking, once on the card.
+    const glance = page.getByRole("region", { name: "At a glance" });
+    await expect(glance.getByText(/needs at least 4 nights/)).toBeVisible();
+    await expect(page.locator("#region-kyushu").getByText(/needs at least 4 nights/)).toBeVisible();
   });
 
   test("the fit score can be traced back to its rubric", async ({ page }) => {
