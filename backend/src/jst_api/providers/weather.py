@@ -72,6 +72,30 @@ class DemoWeatherProvider:
         )
 
 
+#: The climate API serves daily model output only, so normals are a mean over
+#: this window. One decade is one ~80 kB response per place, cached for a month.
+_NORMALS_START = "2011-01-01"
+_NORMALS_END = "2020-12-31"
+
+
+def monthly_normals(daily: dict[str, Any]) -> dict[int, tuple[float, float]]:
+    """Mean daily high and low per calendar month from an Open-Meteo daily block."""
+    sums: dict[int, list[float]] = {}
+    for day, high, low in zip(
+        daily.get("time") or [],
+        daily.get("temperature_2m_max") or [],
+        daily.get("temperature_2m_min") or [],
+        strict=False,
+    ):
+        if high is None or low is None:
+            continue
+        bucket = sums.setdefault(int(day[5:7]), [0.0, 0.0, 0.0])
+        bucket[0] += float(high)
+        bucket[1] += float(low)
+        bucket[2] += 1
+    return {month: (hi / n, lo / n) for month, (hi, lo, n) in sums.items()}
+
+
 class OpenMeteoWeatherProvider:
     """Open-Meteo climate normals. No API key required, generous free tier."""
 
@@ -107,29 +131,34 @@ class OpenMeteoWeatherProvider:
                     params={
                         "latitude": place.lat,
                         "longitude": place.lon,
-                        "start_date": "1991-01-01",
-                        "end_date": "2020-12-31",
+                        "start_date": _NORMALS_START,
+                        "end_date": _NORMALS_END,
                         "models": "MRI_AGCM3_2_S",
-                        "monthly": "temperature_2m_max,temperature_2m_min",
+                        "daily": "temperature_2m_max,temperature_2m_min",
                     },
                 )
                 resp.raise_for_status()
                 return resp.json()
 
         try:
-            data = await call_with_resilience(
-                _call,
-                name="open-meteo",
-                timeout=self._timeout,
-                policy=self._policy,
-                breaker=self._breaker,
-            )
-            monthly = data.get("monthly", {})
-            highs = monthly.get("temperature_2m_max") or []
-            lows = monthly.get("temperature_2m_min") or []
-            idx = month - 1
-            high = float(highs[idx]) if idx < len(highs) else 0.0
-            low = float(lows[idx]) if idx < len(lows) else 0.0
+            normals_key = cache_key("weather-normals", {"p": place_slug})
+            cached = await self._cache.get(normals_key) if self._cache else None
+            if cached is None:
+                data = await call_with_resilience(
+                    _call,
+                    name="open-meteo",
+                    timeout=self._timeout,
+                    policy=self._policy,
+                    breaker=self._breaker,
+                )
+                normals = monthly_normals(data.get("daily", {}))
+                if self._cache:
+                    await self._cache.set(
+                        normals_key, {str(m): v for m, v in normals.items()}, ttl=86400 * 30
+                    )
+            else:
+                normals = {int(m): (float(v[0]), float(v[1])) for m, v in cached.items()}
+            high, low = normals[month]
         except Exception as exc:
             log.warning("weather.openmeteo_failed_using_normals", error=str(exc))
             return await self._fallback.get_weather_context(place_slug, month)
