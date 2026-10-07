@@ -1,5 +1,6 @@
 """All ORM models. Importing this package registers every table on ``Base``."""
 
+from jst_api.db.models.billing import Purchase
 from jst_api.db.models.catalog import (
     BookingConstraint,
     Place,
@@ -43,6 +44,7 @@ __all__ = [
     "Feedback",
     "HumanReviewTask",
     "Place",
+    "Purchase",
     "Region",
     "Source",
     "SourceDocument",

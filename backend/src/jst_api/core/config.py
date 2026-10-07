@@ -151,6 +151,10 @@ class Settings(BaseSettings):
 
     # ---- billing -----------------------------------------------------------
     stripe_secret_key: str | None = None
+    """Unset means demo checkout. A live key is refused outside production."""
+    stripe_webhook_secret: str | None = None
+    public_web_url: str = "http://localhost:3000"
+    """Where Stripe sends the traveller back to after checkout."""
     price_where_next_aud: int = 0
     price_verified_route_aud: int = 59
     price_route_check_aud: int = 129

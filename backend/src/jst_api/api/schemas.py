@@ -7,8 +7,8 @@ strict validation (max lengths, forbidden extras) at the edge.
 
 from __future__ import annotations
 
-from datetime import date
-from typing import Any
+from datetime import date, datetime
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -242,3 +242,42 @@ class ReadyOut(BaseModel):
     providers: dict[str, Any]
     demo_mode: bool
     checks: dict[str, bool]
+
+
+class CheckoutIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    plan_id: Literal["verified_route", "route_check"]
+    analysis_id: str | None = Field(default=None, max_length=40)
+    trip_id: str | None = Field(default=None, max_length=40)
+
+
+class PurchaseOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    plan_id: str
+    plan_name: str
+    amount_aud: int
+    status: str
+    provider: str
+    is_demo: bool
+    analysis_id: str | None
+    trip_id: str | None
+    paid_at: datetime | None
+
+
+class CheckoutOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    purchase: PurchaseOut
+    checkout_url: str
+    mode: Literal["demo", "stripe_test", "stripe_live"]
+
+
+class BillingConfigOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    mode: Literal["demo", "stripe_test", "stripe_live"]
+    currency: str
+    prices_aud: dict[str, int]

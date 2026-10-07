@@ -23,6 +23,7 @@ _SECRET_KEYS = {
     "admin_token",
     "jwt_secret",
     "stripe_secret_key",
+    "stripe_webhook_secret",
     "password",
     "token",
     "secret",
