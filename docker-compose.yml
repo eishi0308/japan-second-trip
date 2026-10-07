@@ -49,6 +49,8 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      OTEL_ENABLED: ${OTEL_ENABLED:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
     ports:
       - "8000:8000"
     depends_on:
@@ -77,6 +79,19 @@ services:
     depends_on:
       api:
         condition: service_started
+
+  # Optional trace viewer: `docker compose --profile observability up -d jaeger`,
+  # then OTEL_ENABLED=true and
+  # OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/v1/traces (http://jaeger:4318/...
+  # from inside the compose network). UI on http://localhost:16686.
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    profiles: ["observability"]
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"
+      - "4318:4318"
 
 volumes:
   pgdata:

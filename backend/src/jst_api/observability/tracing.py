@@ -67,6 +67,19 @@ def init_tracing(settings: Any) -> None:
         _otel_ready = True
 
 
+def instrument_app(app: Any, settings: Any) -> None:
+    """Emit a server span per HTTP request, so agent spans have a parent."""
+    if not settings.otel_enabled:
+        return
+    init_tracing(settings)
+    try:
+        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+        FastAPIInstrumentor.instrument_app(app, excluded_urls="health,ready")
+    except Exception as exc:  # pragma: no cover - optional dependency path
+        log.warning("tracing.fastapi_instrumentation_failed", error=str(exc))
+
+
 @dataclass
 class SpanRecord:
     name: str

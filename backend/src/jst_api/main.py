@@ -17,7 +17,7 @@ from jst_api.core.ids import new_id
 from jst_api.core.logging import configure_logging, get_logger
 from jst_api.db.base import build_engine, get_sessionmaker, reset_engine
 from jst_api.observability.metrics import METRICS
-from jst_api.observability.tracing import init_tracing
+from jst_api.observability.tracing import init_tracing, instrument_app
 from jst_api.providers.registry import build_registry
 from jst_api.security.ratelimit import RateLimiter
 from jst_api.services.analysis_service import AnalysisService
@@ -114,6 +114,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return response
 
     install_error_handlers(app)
+    instrument_app(app, settings)
 
     app.include_router(system.router)
     app.include_router(analyses.router, prefix=settings.api_prefix)
