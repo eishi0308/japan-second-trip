@@ -5,6 +5,8 @@
 Verified regional travel intelligence for people who have already done Tokyo,
 Kyoto and Osaka.
 
+![Landing page with the two paths: Where should I go next, and Check my route](docs/images/landing.png)
+
 ---
 
 ## The problem
@@ -50,6 +52,8 @@ NOT RECOMMENDED FOR THIS TRIP
 
 The product is willing to say *do not go here on this trip*, and to say why.
 
+![Where Next result: every region scored on one rubric, Kyushu ruled out with its reason](docs/images/where-next-result.png)
+
 ### RouteCheck
 
 ```
@@ -74,6 +78,16 @@ RECOMMENDED CHANGE
 Every issue exposes the measurements that triggered it. The revised route is
 generated deterministically and **re-costed with real transport data** before it
 is offered — a route with invented travel times is worse than no route.
+
+![RouteCheck result: route health, the measurements behind it, a critical issue and a conflict sent for human verification](docs/images/route-check-result.png)
+
+### Admin verification
+
+When approved sources disagree — here, two different last-bus times into Ginzan
+Onsen — the system does not pick one. It opens a review task, and a human records
+the verified value.
+
+![Admin verification queue showing a conflicting-sources review task](docs/images/admin.png)
 
 ## What is actually agentic here
 
