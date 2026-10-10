@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ConfidenceNotice } from "@/components/ConfidenceNotice";
+import { FinalSummary } from "@/components/FinalSummary";
 import { EvidenceList } from "@/components/EvidenceList";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
 import { IssueCard } from "@/components/IssueCard";
+import { PurchaseOffer } from "@/components/PurchaseOffer";
 import { RouteTimeline } from "@/components/RouteTimeline";
 import { HealthBadge, SectionHeading, Stat } from "@/components/primitives";
 import { ApiRequestError, api } from "@/lib/api";
@@ -35,6 +37,12 @@ export default async function RouteCheckResultPage({ params }: { params: Promise
         <h1 className="text-headline font-serif text-ink-900">Route health</h1>
         <p className="prose-measure mt-3 text-[1rem] text-ink-800">{result.health_summary}</p>
       </div>
+
+      {result.final_explanation ? (
+        <div className="mt-8 max-w-3xl">
+          <FinalSummary summary={result.final_explanation} />
+        </div>
+      ) : null}
 
       {load ? (
         <div className="mt-8 grid grid-cols-2 gap-x-8 gap-y-5 border-y border-ink-200 py-6 sm:grid-cols-3 lg:grid-cols-6">
@@ -227,6 +235,7 @@ export default async function RouteCheckResultPage({ params }: { params: Promise
             Reconsider the region
           </Link>
         </div>
+        <PurchaseOffer planId="route_check" analysisId={result.analysis_id} tripId={result.trip_id} />
         <FeedbackWidget analysisId={result.analysis_id} tripId={result.trip_id} />
         <p className="text-[0.75rem] text-ink-400">
           Analysis {result.analysis_id} · rules v{result.rules_version} · prompts{" "}

@@ -134,6 +134,78 @@ test.describe("RouteCheck", () => {
   });
 });
 
+test.describe("closing summary", () => {
+  test("a Where Next result opens with the verdict and what to do next", async ({ page }) => {
+    await page.goto("/where-next");
+    await page.getByRole("button", { name: "Skip the rest" }).click();
+    await page.waitForURL(/\/where-next\/result\//, { timeout: RESULT_TIMEOUT });
+
+    const summary = page.getByRole("region", { name: "In short" });
+    await expect(summary).toBeVisible();
+    await expect(summary.getByText(/strongest fit|No region fits/)).toBeVisible();
+  });
+
+  test("a RouteCheck result says what to do and flags the disputed detail", async ({ page }) => {
+    await page.goto("/route-check");
+    await page.getByRole("button", { name: "Use the example" }).click();
+    await page.getByLabel("Transport").selectOption("no_car");
+    await page.getByRole("button", { name: "Check this route" }).click();
+    await page.waitForURL(/\/route-check\/result\//, { timeout: RESULT_TIMEOUT });
+
+    const summary = page.getByRole("region", { name: "In short" });
+    await expect(summary.getByText("What to do next")).toBeVisible();
+    // The example route runs through a stop whose last-bus time is disputed.
+    await expect(summary.getByText("Hold loosely")).toBeVisible();
+  });
+});
+
+test.describe("checkout", () => {
+  test("a demo purchase can be made from a result and is remembered there", async ({ page }) => {
+    await page.goto("/route-check");
+    await page.getByRole("button", { name: "Use the example" }).click();
+    await page.getByLabel("Transport").selectOption("no_car");
+    await page.getByRole("button", { name: "Check this route" }).click();
+    await page.waitForURL(/\/route-check\/result\//, { timeout: RESULT_TIMEOUT });
+    // The checkout returns to PUBLIC_WEB_URL, which may spell the host differently
+    // (localhost vs 127.0.0.1), so the way back is matched on the path.
+    const resultPath = new URL(page.url()).pathname;
+
+    // Nothing is locked behind the purchase: the critique is already on the page.
+    await expect(page.getByRole("heading", { name: /^Critical —/ })).toBeVisible();
+    await expect(page.getByText("Demo checkout · no charge")).toBeVisible();
+
+    await page.getByRole("button", { name: /^Buy / }).click();
+    await page.waitForURL(/\/checkout\/demo\?purchase=/, { timeout: 30_000 });
+    await expect(page.getByRole("heading", { name: "Demo checkout" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Confirm demo purchase" }).click();
+    await expect(page.getByText("Payment confirmed")).toBeVisible();
+    await expect(page.getByText(/no card was taken and nothing was charged/)).toBeVisible();
+
+    await page.getByRole("link", { name: "Back to your analysis" }).click();
+    await page.waitForURL((url) => url.pathname === resultPath, { timeout: 30_000 });
+    await expect(page.getByText("Purchased", { exact: true })).toBeVisible();
+  });
+
+  test("a demo checkout can be cancelled without a charge", async ({ page }) => {
+    await page.goto("/where-next");
+    await page.getByRole("button", { name: "Skip the rest" }).click();
+    await page.waitForURL(/\/where-next\/result\//, { timeout: RESULT_TIMEOUT });
+
+    await page.getByRole("button", { name: /^Buy / }).click();
+    await page.waitForURL(/\/checkout\/demo\?purchase=/, { timeout: 30_000 });
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
+    await expect(page.getByText("Checkout cancelled")).toBeVisible();
+    await expect(page.getByText(/Nothing was charged/)).toBeVisible();
+  });
+
+  test("an unknown purchase is explained, not shown as a blank page", async ({ page }) => {
+    await page.goto("/checkout/demo?purchase=pur_does_not_exist");
+    await expect(page.getByRole("heading", { name: "Demo checkout" })).toBeVisible();
+    await expect(page.getByText("That purchase doesn't exist")).toBeVisible();
+  });
+});
+
 test.describe("trip workspace", () => {
   test("remembers the decision made in a Where Next run", async ({ page }) => {
     await page.goto("/where-next");
@@ -170,13 +242,16 @@ test.describe("admin", () => {
     await page.getByRole("button", { name: "Ask" }).click();
 
     await expect(page.getByText("Capability boundary")).toBeVisible({ timeout: 30_000 });
+    // The model chose its own lookups; the default request is about stale records.
+    await expect(page.getByText("Tools selected for this request")).toBeVisible();
+    await expect(page.getByText("get_verification_status", { exact: true })).toBeVisible();
     await expect(page.getByText(/Can write trip state:\s*no/)).toBeVisible();
   });
 });
 
 test.describe("accessibility basics", () => {
   test("every page has exactly one h1 and a skip link", async ({ page }) => {
-    for (const path of ["/", "/where-next", "/route-check", "/admin"]) {
+    for (const path of ["/", "/where-next", "/route-check", "/admin", "/checkout/demo", "/checkout/return"]) {
       await page.goto(path);
       await expect(page.locator("h1")).toHaveCount(1);
       await expect(page.getByRole("link", { name: "Skip to content" })).toBeAttached();

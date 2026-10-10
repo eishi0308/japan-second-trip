@@ -79,8 +79,11 @@ start is the whole product. See `docs/adr/0011-no-predictive-ml.md`.
 | RouteCheck | A$129 | the stronger pain — the traveller has already invested and wants to know if it holds |
 
 Configurable server-side (`PRICE_*`), because these are hypotheses under test,
-not constants. Payment is not wired up in demo mode, and no part of the system
-performs a payment action autonomously.
+not constants. A purchase is started by the traveller from a result page: with
+no Stripe key it is a demo checkout that takes no card and moves no money, with
+one it is Stripe Checkout. Nothing is gated behind it yet — what a paid plan
+unlocks is undecided — and no part of the system performs a payment action
+autonomously.
 
 ## What would need to be true
 

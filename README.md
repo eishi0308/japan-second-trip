@@ -101,7 +101,10 @@ Not "an LLM in a loop". Specifically:
   makes at runtime.
 - **Tool selection and invocation.** 14 typed tools behind an MCP gateway, with
   per-consumer allowlists, argument validation at the protocol layer, budgets,
-  bounded retries and full tracing.
+  bounded retries and full tracing. The two traveller-facing graphs call tools in
+  an order fixed by the workflow; the admin assistant's model chooses its own
+  from a read-only menu, as a plan that is validated in code before anything
+  runs (`docs/adr/0013-model-selected-tools.md`).
 - **Retrieval.** Hybrid dense + lexical search with rank fusion and reranking,
   tuned by measurement.
 - **State and memory.** Trip decisions persist and constrain later analyses. A
@@ -315,9 +318,9 @@ make sweep        # retrieval hyper-parameter sweep
 ## Testing
 
 ```bash
-make test         # 231 backend tests, 80% coverage
-make test-web     # 21 frontend unit tests
-make e2e          # 15 end-to-end tests × 2 viewports
+make test         # 274 backend tests
+make test-web     # 52 frontend tests: 24 component, 28 integration against a mocked API
+make e2e          # 20 end-to-end tests × 2 viewports
 make lint         # ruff, mypy, tsc
 ```
 
@@ -382,7 +385,7 @@ japan-second-trip/
 ├── frontend/               Next.js app — the two flows and the admin console
 │   ├── src/app/            routes
 │   ├── src/components/
-│   └── tests/              unit (vitest) · e2e (playwright)
+│   └── tests/              unit · integration (vitest) · e2e (playwright)
 ├── packages/               code both apps import
 │   ├── shared_schemas/     the MCP tool contracts, one source of truth
 │   └── travel_mcp/         the MCP server and session
@@ -410,7 +413,7 @@ them live in one place rather than being restated on each side.
 | [mcp.md](docs/mcp.md) | the gateway and its three consumers |
 | [deployment.md](docs/deployment.md) | local, Docker, AWS |
 | [product-decisions.md](docs/product-decisions.md) | who it is for and what was left out |
-| [adr/](docs/adr/) | 12 architecture decision records |
+| [adr/](docs/adr/) | 13 architecture decision records |
 
 ## Limitations
 
@@ -436,6 +439,12 @@ credible.
   returns calibrated confidence.
 - **Terraform has not been applied** against a live AWS account — it validates
   and plans, but no infrastructure has ever been created from it.
+- **Buying unlocks nothing yet.** Checkout works end to end — a demo checkout
+  with no card when Stripe is not configured, Stripe Checkout when it is — and
+  the purchase is recorded against the analysis. But every result is shown in
+  full for free; what a paid plan adds is a product decision still to be made.
+  Stripe itself has only been exercised through its mocked client in tests, never
+  against a real test-mode key.
 - **Retrieval numbers flatter lexical search.** The corpus is small and
   hand-authored, so its vocabulary overlaps the golden queries more than a
   scraped corpus would. Re-measure after switching to a real embedding provider.
@@ -443,7 +452,8 @@ credible.
 ## Roadmap
 
 **Next** — a real transport data source; expand the golden set well beyond 20
-queries so the comparison is not decided by noise; Stripe in test mode.
+queries so the comparison is not decided by noise; decide what a paid plan
+unlocks and run the checkout against a Stripe test-mode key.
 
 **Then** — more regions, added one at a time with verified evidence; a learned
 reranker over retrieval, where relevance labels can genuinely come from

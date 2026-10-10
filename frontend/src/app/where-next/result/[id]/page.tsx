@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ConfidenceNotice } from "@/components/ConfidenceNotice";
+import { FinalSummary } from "@/components/FinalSummary";
 import { EvidenceList } from "@/components/EvidenceList";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
+import { PurchaseOffer } from "@/components/PurchaseOffer";
 import { RegionCard } from "@/components/RegionCard";
 import { RegionComparison } from "@/components/RegionComparison";
 import { EmptyState, SectionHeading } from "@/components/primitives";
@@ -38,6 +40,12 @@ export default async function WhereNextResultPage({ params }: { params: Promise<
           style. The regions ruled out are shown too, with the constraint each one failed.
         </p>
       </div>
+
+      {result.final_explanation ? (
+        <div className="mt-8 max-w-3xl">
+          <FinalSummary summary={result.final_explanation} />
+        </div>
+      ) : null}
 
       <div className="mt-8 max-w-3xl">
         <RegionComparison
@@ -133,6 +141,10 @@ export default async function WhereNextResultPage({ params }: { params: Promise<
           <Link href="/where-next" className="btn-ghost">
             Change the trip
           </Link>
+        </div>
+
+        <div className="max-w-3xl">
+          <PurchaseOffer planId="verified_route" analysisId={result.analysis_id} tripId={result.trip_id} />
         </div>
 
         <FeedbackWidget analysisId={result.analysis_id} tripId={result.trip_id} />

@@ -21,7 +21,7 @@ change can be attributed rather than guessed at.
 | --- | --- | --- |
 | retrieval | 20 × 4 strategies | Recall@K, Precision@K, MRR, NDCG@8, latency, by query class |
 | rag | 6 | evidence relevance, citation correctness, groundedness, unsupported-claim rate, refusal correctness |
-| tool | 23 | argument validity, output shape, permissions, budget enforcement, recovery |
+| tool | 29 | argument validity, output shape, permissions, budget enforcement, recovery, and model-driven tool selection (6 requests: required tools chosen, forbidden tools not, unnecessary-call rate) |
 | agent | 8 | node progression, rule firing, candidate rejection, revision quality, escalation, budgets |
 | security | 19 | injection detection and quarantine, false positives, allowlist, PII redaction, capability control |
 | production | 12 | P50/P95/P99 latency, tokens, cost, retries, fallbacks, cache hit rate |
@@ -30,7 +30,7 @@ change can be attributed rather than guessed at.
 
 ```
 retrieval    20/20   hybrid: recall@5 0.797  MRR 0.887  NDCG@8 0.813  p50 22ms
-tool         23/23   p50 20ms
+tool         29/29   p50 18ms   selection 6/6, unnecessary calls 0%
 security     19/19
 rag           6/6    relevance 1.00  citations 1.00  grounded 1.00  unsupported 0
 agent         8/8    p50 381ms  p95 570ms  12.5 nodes  13.5 tool calls
