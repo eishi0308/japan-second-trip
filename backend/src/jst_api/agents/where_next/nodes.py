@@ -16,6 +16,7 @@ from typing import Any
 
 from sqlalchemy import select
 
+from jst_api.agents.common.explanation import describe_conflict, write_final_explanation
 from jst_api.agents.common.guardrails import run_guardrails
 from jst_api.agents.common.state import AgentContext, WhereNextState
 from jst_api.core.logging import get_logger
@@ -883,9 +884,47 @@ def make_answer(ctx: AgentContext):
             "scoring_rubric_version": "1.0.0",
             "prompt_versions": ctx.trace.prompt_versions,
         }
+        result["final_explanation"] = await write_final_explanation(ctx, _explanation_facts(result))
         return {"result": result, "status": result["status"]}
 
     return answer
+
+
+def _explanation_facts(result: dict[str, Any]) -> dict[str, Any]:
+    """The fact sheet the closing summary is written from — nothing else reaches it."""
+    best = result.get("recommended")
+    route = result.get("suggested_route")
+    if best:
+        headline = (
+            f"{best['region_name']} is the strongest fit for this trip, "
+            f"scoring {best['deterministic_score']:g}/100 ({best['fit_label']} fit)"
+        )
+    else:
+        headline = "No region fits this trip as described"
+    return {
+        "flow": "where_next",
+        "headline_fact": headline,
+        "supporting": (best or {}).get("reasons", [])[:3],
+        "tradeoffs": (best or {}).get("tradeoffs", [])[:2],
+        "alternatives": [
+            f"{a['region_name']} ({a['deterministic_score']:g}/100)" for a in result["alternatives"]
+        ],
+        "ruled_out": [
+            f"{r['region_name']}: {r['rejected_reasons'][0]}"
+            for r in result["rejected"]
+            if r["rejected_reasons"]
+        ],
+        "recommended_change": (
+            f"Start from the suggested route: {' → '.join(route['stops'])}."
+            if route and route["stops"]
+            else None
+        ),
+        "confidence": result["confidence"],
+        "human_review_required": result["human_review_required"],
+        "conflicts": [describe_conflict(c) for c in result["conflicts"]],
+        "unknowns": result["unknowns"][:3],
+        "assumptions": result["assumptions"][:3],
+    }
 
 
 def _final_route(state: WhereNextState) -> dict[str, Any] | None:

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from jst_api.agents.common.explanation import describe_conflict, write_final_explanation
 from jst_api.agents.common.guardrails import run_guardrails
 from jst_api.agents.common.state import AgentContext, RouteCheckState
 from jst_api.core.logging import get_logger
@@ -1126,9 +1127,51 @@ def make_result(ctx: AgentContext):
             "rules_version": RULES_VERSION,
             "prompt_versions": ctx.trace.prompt_versions,
         }
+        payload["final_explanation"] = await write_final_explanation(
+            ctx, _explanation_facts(payload)
+        )
         return {"result": payload, "status": payload["status"]}
 
     return result
+
+
+def _explanation_facts(payload: dict[str, Any]) -> dict[str, Any]:
+    """The fact sheet the closing summary is written from — nothing else reaches it."""
+    criticals = payload["critical_issues"]
+    warnings = payload["warnings"]
+    revised = payload.get("revised_route")
+    chosen_fix = next(iter(payload["proposed_fixes"]), None) if revised else None
+    return {
+        "flow": "route_check",
+        "headline_fact": (
+            f"Route health is {payload['health'].replace('_', ' ')}: "
+            f"{len(criticals)} critical problem(s) and {len(warnings)} warning(s)"
+        ),
+        "supporting": [i["title"] for i in [*criticals, *warnings]][:4],
+        "strengths": [i["title"] for i in payload["strengths"]][:2],
+        "recommended_change": (
+            "Switch to the revised route: "
+            + " → ".join(
+                f"{stop} {nights}N" if nights else stop
+                for stop, nights in zip(revised["stops"], revised["nights"], strict=False)
+            )
+            + "."
+            if revised
+            else None
+        ),
+        "lost": ((chosen_fix or {}).get("lost") or [])[:2],
+        "actions": [i["proposed_fix"] for i in criticals if i.get("proposed_fix")][:2],
+        "confidence": payload["confidence"],
+        "human_review_required": payload["human_review_required"],
+        "conflicts": [describe_conflict(c) for c in payload["conflicts"]],
+        "unknowns": [
+            *(
+                f"{place} could not be matched to a known place"
+                for place in payload["unresolved_places"]
+            ),
+            *payload["unknowns"],
+        ][:3],
+    }
 
 
 def _fallback_summary(issues: list[dict[str, Any]]) -> str:

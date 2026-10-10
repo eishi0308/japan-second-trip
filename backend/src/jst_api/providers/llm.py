@@ -59,6 +59,7 @@ class TaskClass:
     GROUNDING = "grounding"
     REPAIR = "repair"
     ADMIN = "admin"
+    EXPLANATION = "explanation"
 
 
 #: task class -> "fast" | "reasoning". Documented, not implicit.
@@ -68,6 +69,8 @@ ROUTING_POLICY: dict[str, str] = {
     TaskClass.REPAIR: "fast",
     TaskClass.GROUNDING: "fast",
     TaskClass.ADMIN: "fast",
+    # Restates established facts in two or three sentences; no reasoning to buy.
+    TaskClass.EXPLANATION: "fast",
     TaskClass.COMPARISON: "reasoning",
     TaskClass.CRITIQUE: "reasoning",
 }
@@ -462,6 +465,12 @@ def _demo_admin_answer(data: dict[str, Any], schema: type[BaseModel]) -> BaseMod
     )
 
 
+def _demo_final_explanation(data: dict[str, Any], schema: type[BaseModel]) -> BaseModel:
+    from jst_api.domain.explanation import deterministic_final_explanation
+
+    return schema.model_validate(deterministic_final_explanation(data).model_dump())
+
+
 _DEMO_HANDLERS = {
     "ExtractedItinerary": _demo_extracted_itinerary,
     "ComparisonOutput": _demo_comparison,
@@ -469,6 +478,7 @@ _DEMO_HANDLERS = {
     "GroundingVerdict": _demo_grounding,
     "RerankVerdict": _demo_rerank,
     "AdminAssistantAnswer": _demo_admin_answer,
+    "FinalExplanationOutput": _demo_final_explanation,
 }
 
 

@@ -71,6 +71,13 @@ export interface ResolvedFact {
   verified_at: string;
 }
 
+export interface FinalExplanation {
+  verdict: string;
+  next_steps: string[];
+  caveats: string[];
+  source: "model" | "deterministic";
+}
+
 export interface WhereNextResult {
   analysis_id: string;
   trip_id: string | null;
@@ -86,6 +93,7 @@ export interface WhereNextResult {
     nights: number[];
     rationale: string;
   } | null;
+  final_explanation?: FinalExplanation | null;
   assumptions: string[];
   missing_information: string[];
   unknowns: string[];
@@ -165,6 +173,7 @@ export interface RouteCheckResult {
   generated_at: string;
   health: RouteHealth;
   health_summary: string;
+  final_explanation?: FinalExplanation | null;
   parsed_route: { stops: RouteStop[]; segments: RouteSegment[]; arrival_city: string | null; departure_city: string | null } | null;
   travel_load: TravelLoad | null;
   critical_issues: RouteIssue[];
@@ -246,6 +255,42 @@ export interface PricingPlan {
   features: string[];
   cta: string;
   highlight: boolean;
+}
+
+export type BillingMode = "demo" | "stripe_test" | "stripe_live";
+export type PaidPlanId = "verified_route" | "route_check";
+/** The API types this as a plain string; these are the values it writes. */
+export type PurchaseStatus = "pending" | "paid" | "cancelled";
+
+export interface CheckoutIn {
+  plan_id: PaidPlanId;
+  analysis_id?: string | null;
+  trip_id?: string | null;
+}
+
+export interface Purchase {
+  id: string;
+  plan_id: string;
+  plan_name: string;
+  amount_aud: number;
+  status: PurchaseStatus | (string & {});
+  provider: string;
+  is_demo: boolean;
+  analysis_id: string | null;
+  trip_id: string | null;
+  paid_at: string | null;
+}
+
+export interface CheckoutOut {
+  purchase: Purchase;
+  checkout_url: string;
+  mode: BillingMode;
+}
+
+export interface BillingConfig {
+  mode: BillingMode;
+  currency: string;
+  prices_aud: Record<string, number>;
 }
 
 export interface ProvidersInfo {

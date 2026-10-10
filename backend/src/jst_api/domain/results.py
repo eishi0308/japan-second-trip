@@ -20,6 +20,7 @@ from jst_api.domain.enums import (
     Severity,
 )
 from jst_api.domain.evidence import Citation, ConflictingEvidence
+from jst_api.domain.explanation import FinalExplanation
 from jst_api.domain.route import Route, TravelLoad
 
 
@@ -103,6 +104,7 @@ class WhereNextResult(BaseModel):
     rejected: list[RegionRecommendation] = Field(default_factory=list)
 
     suggested_route: SuggestedRegionalRoute | None = None
+    final_explanation: FinalExplanation | None = None
     assumptions: list[str] = Field(default_factory=list)
     missing_information: list[str] = Field(default_factory=list)
     unknowns: list[str] = Field(default_factory=list)
@@ -171,6 +173,7 @@ class RouteCheckResult(BaseModel):
 
     health: RouteHealth = RouteHealth.HEALTHY
     health_summary: str = ""
+    final_explanation: FinalExplanation | None = None
     parsed_route: Route | None = None
     travel_load: TravelLoad | None = None
 
