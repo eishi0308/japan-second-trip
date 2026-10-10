@@ -178,8 +178,9 @@ function Pricing({ plans }: { plans: PricingPlan[] }) {
           ))}
         </div>
         <p className="mt-6 text-[0.8rem] text-ink-500">
-          Prices are a hypothesis under test and configurable server-side. Payment is not wired up in
-          demo mode, and no part of this system can book or pay for anything on your behalf.
+          Prices are a hypothesis under test and configurable server-side. You buy from a result page,
+          once the analysis has run; in demo mode that checkout takes no card and makes no charge. No
+          part of this system can book or pay for anything on your behalf.
         </p>
       </div>
     </section>

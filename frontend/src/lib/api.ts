@@ -8,9 +8,13 @@
 
 import type {
   AnalysisEnvelope,
+  BillingConfig,
+  CheckoutIn,
+  CheckoutOut,
   EvidenceDetail,
   PricingPlan,
   ProvidersInfo,
+  Purchase,
   RouteCheckResult,
   TripOut,
   WhereNextResult,
@@ -99,6 +103,22 @@ export const api = {
   // central honesty claim as absent until the first revalidation. Demo status
   // must reflect the running system, so it is read per request.
   providers: () => apiFetch<ProvidersInfo>("/providers"),
+  // Never cached: a purchase's status is the one thing on these screens that
+  // must not be served stale, and the mode decides whether a card is involved.
+  billing: {
+    config: () => apiFetch<BillingConfig>("/api/v1/billing/config"),
+    checkout: (body: CheckoutIn) =>
+      apiFetch<CheckoutOut>("/api/v1/billing/checkout", { method: "POST", body }),
+    purchases: (analysisId: string) =>
+      apiFetch<Purchase[]>(`/api/v1/billing/purchases?analysis_id=${encodeURIComponent(analysisId)}`),
+    purchase: (id: string) => apiFetch<Purchase>(`/api/v1/billing/purchases/${encodeURIComponent(id)}`),
+    demoConfirm: (id: string) =>
+      apiFetch<Purchase>(`/api/v1/billing/purchases/${encodeURIComponent(id)}/demo-confirm`, { method: "POST" }),
+    cancel: (id: string) =>
+      apiFetch<Purchase>(`/api/v1/billing/purchases/${encodeURIComponent(id)}/cancel`, { method: "POST" }),
+    sync: (id: string) =>
+      apiFetch<Purchase>(`/api/v1/billing/purchases/${encodeURIComponent(id)}/sync`, { method: "POST" }),
+  },
   admin: {
     reviews: (token: string) => apiFetch<{ reviews: AdminReview[] }>("/api/v1/admin/reviews", { token }),
     resolve: (token: string, id: string, body: unknown) =>
@@ -169,6 +189,14 @@ export interface AssistantAnswer {
   detail: string;
   evidence: { evidence_id: string; source_title: string; freshness: string; snippet: string }[];
   tools_available: string[];
+  tool_plan?: {
+    tool: string;
+    arguments: Record<string, unknown>;
+    reason: string;
+    status: "planned" | "executed" | "failed" | "rejected";
+    detail: string | null;
+  }[];
+  tools_selected_by?: "model" | "default";
   can_write_trip_state: boolean;
   trace: Record<string, unknown>;
 }
