@@ -235,3 +235,83 @@ class TestProviderDegradation:
             "the deterministic ranking does not need the provider"
         )
         assert run.result["status"] in {"complete", "needs_human_review"}
+
+
+class TestIngestionEmbeddingFailure:
+    async def test_a_failed_embedding_call_leaves_nothing_behind_and_can_be_retried(
+        self, session_factory, registry, settings, seeded
+    ):
+        """An embedding outage must cost one ingestion, not the knowledge base.
+
+        The upstream call is retried a bounded number of times; when it still
+        fails the request's transaction is rolled back, so no half-written
+        source claims the content was ingested and the same call works later.
+        """
+        from sqlalchemy import delete, func, select
+
+        from jst_api.db.models import EvidenceChunk, Source, SourceDocument
+        from jst_api.domain.enums import SourceType
+        from jst_api.knowledge.embeddings import ProviderEmbeddings
+        from jst_api.knowledge.ingest import IngestionService
+
+        title = "Embedding outage fixture"
+        text = "The last bus from Oishida to Ginzan Onsen leaves in the late afternoon. " * 6
+        attempts = {"n": 0}
+
+        class DownEmbeddings:
+            model = "down"
+
+            async def aembed_documents(self, texts: list[str]) -> list[list[float]]:
+                async def upstream() -> list[list[float]]:
+                    attempts["n"] += 1
+                    raise ConnectionError("embedding API unreachable")
+
+                return await call_with_resilience(
+                    upstream,
+                    name="embeddings",
+                    timeout=2.0,
+                    policy=RetryPolicy(max_attempts=3, base_delay=0.001),
+                )
+
+        async def ingest(embeddings):
+            # Mirrors the request-scoped session: commit on success, roll back on error.
+            async with session_factory() as s:
+                try:
+                    result = await IngestionService(s, embeddings, settings).ingest_text(
+                        text, title=title, source_type=SourceType.DEMO_SEED
+                    )
+                    await s.commit()
+                    return result
+                except Exception:
+                    await s.rollback()
+                    raise
+
+        async def stored() -> tuple[int, int]:
+            async with session_factory() as s:
+                sources = await s.scalar(
+                    select(func.count()).select_from(Source).where(Source.title == title)
+                )
+                chunks = await s.scalar(
+                    select(func.count())
+                    .select_from(EvidenceChunk)
+                    .join(Source, Source.id == EvidenceChunk.source_id)
+                    .where(Source.title == title)
+                )
+                return int(sources or 0), int(chunks or 0)
+
+        with pytest.raises(ProviderError):
+            await ingest(DownEmbeddings())
+        assert attempts["n"] == 3, "the embedding call is retried, and the retries are bounded"
+        assert await stored() == (0, 0), "a failed ingestion must not leave a source behind"
+
+        result = await ingest(ProviderEmbeddings(registry.embeddings))
+        try:
+            assert result.chunks_written > 0
+            assert await stored() == (1, result.chunks_written)
+        finally:
+            # The database is shared by the whole test session; leave it as found.
+            async with session_factory() as s:
+                for model in (EvidenceChunk, SourceDocument):
+                    await s.execute(delete(model).where(model.source_id == result.source_id))
+                await s.execute(delete(Source).where(Source.id == result.source_id))
+                await s.commit()
