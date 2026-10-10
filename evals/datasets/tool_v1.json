@@ -1,29 +1,350 @@
 {
   "dataset": "tool",
-  "version": "1.0.0",
-  "description": "Tool-layer behaviour over the MCP gateway: argument validity, output shape, permission enforcement, error handling and recovery.",
+  "version": "1.1.0",
+  "description": "Tool-layer behaviour over the MCP gateway: argument validity, output shape, permission enforcement, error handling and recovery, plus model-driven tool selection by the admin assistant.",
   "cases": [
-    {"id": "T01", "tool": "search_transport", "args": {"from_place": "Sendai", "to_place": "Ginzan Onsen"}, "expect": {"ok": true, "path": "resolved", "equals": true, "min_options": 1}},
-    {"id": "T02", "tool": "search_transport", "args": {"from_place": "Sendai", "to_place": "A Place That Does Not Exist"}, "expect": {"ok": true, "path": "resolved", "equals": false, "has_message": true}},
-    {"id": "T03", "tool": "search_transport", "args": {"from_place": ""}, "expect": {"ok": false, "reason": "missing and invalid arguments must be rejected by the protocol layer"}},
-    {"id": "T04", "tool": "get_place_details", "args": {"query": "ginzan"}, "expect": {"ok": true, "path": "place.slug", "equals": "ginzan-onsen"}},
-    {"id": "T05", "tool": "get_place_details", "args": {"query": "Yamadera"}, "expect": {"ok": true, "path": "place.region_code", "equals": "tohoku"}},
-    {"id": "T06", "tool": "calculate_travel_load", "args": {"place_slugs": ["tokyo", "sendai", "aomori", "tokyo"], "nights": [3, 2, 2, 0]}, "expect": {"ok": true, "path": "total_nights", "equals": 7}},
-    {"id": "T07", "tool": "check_route_constraints", "args": {"place_slugs": ["tokyo", "sendai", "ginzan-onsen", "aomori", "hakodate", "tokyo"], "nights": [3, 1, 1, 1, 1, 0], "public_transport_only": true}, "expect": {"ok": true, "path": "health", "in": ["needs_improvement", "high_risk"], "min_issues": 3}},
-    {"id": "T08", "tool": "search_verified_evidence", "args": {"query": "Kurokawa Onsen bus access", "limit": 3}, "expect": {"ok": true, "path": "evidence", "min_length": 1}},
-    {"id": "T09", "tool": "get_verification_status", "args": {"limit": 20}, "expect": {"ok": true, "path": "entries", "min_length": 1}},
-    {"id": "T10", "tool": "get_booking_requirements", "args": {"place_slugs": ["nyuto-onsen", "kurokawa-onsen"]}, "expect": {"ok": true, "path": "max_lead_time_days", "min_value": 30}},
-    {"id": "T11", "tool": "get_weather_context", "args": {"place_slug": "ginzan-onsen", "month": 1}, "expect": {"ok": true, "path": "snow_likely", "equals": true}},
-    {"id": "T12", "tool": "get_weather_context", "args": {"place_slug": "ginzan-onsen", "month": 13}, "expect": {"ok": false, "reason": "month is constrained to 1-12"}},
-    {"id": "T13", "tool": "get_route_context", "args": {"place_slugs": ["tokyo", "kanazawa"], "nights": [2, 3]}, "expect": {"ok": true, "path": "legs", "min_length": 1}},
-    {"id": "T14", "tool": "get_place_constraints", "args": {"place_slug": "naoshima", "month": 1}, "expect": {"ok": true, "path": "booking_rules", "min_length": 1}}
+    {
+      "id": "T01",
+      "tool": "search_transport",
+      "args": {
+        "from_place": "Sendai",
+        "to_place": "Ginzan Onsen"
+      },
+      "expect": {
+        "ok": true,
+        "path": "resolved",
+        "equals": true,
+        "min_options": 1
+      }
+    },
+    {
+      "id": "T02",
+      "tool": "search_transport",
+      "args": {
+        "from_place": "Sendai",
+        "to_place": "A Place That Does Not Exist"
+      },
+      "expect": {
+        "ok": true,
+        "path": "resolved",
+        "equals": false,
+        "has_message": true
+      }
+    },
+    {
+      "id": "T03",
+      "tool": "search_transport",
+      "args": {
+        "from_place": ""
+      },
+      "expect": {
+        "ok": false,
+        "reason": "missing and invalid arguments must be rejected by the protocol layer"
+      }
+    },
+    {
+      "id": "T04",
+      "tool": "get_place_details",
+      "args": {
+        "query": "ginzan"
+      },
+      "expect": {
+        "ok": true,
+        "path": "place.slug",
+        "equals": "ginzan-onsen"
+      }
+    },
+    {
+      "id": "T05",
+      "tool": "get_place_details",
+      "args": {
+        "query": "Yamadera"
+      },
+      "expect": {
+        "ok": true,
+        "path": "place.region_code",
+        "equals": "tohoku"
+      }
+    },
+    {
+      "id": "T06",
+      "tool": "calculate_travel_load",
+      "args": {
+        "place_slugs": [
+          "tokyo",
+          "sendai",
+          "aomori",
+          "tokyo"
+        ],
+        "nights": [
+          3,
+          2,
+          2,
+          0
+        ]
+      },
+      "expect": {
+        "ok": true,
+        "path": "total_nights",
+        "equals": 7
+      }
+    },
+    {
+      "id": "T07",
+      "tool": "check_route_constraints",
+      "args": {
+        "place_slugs": [
+          "tokyo",
+          "sendai",
+          "ginzan-onsen",
+          "aomori",
+          "hakodate",
+          "tokyo"
+        ],
+        "nights": [
+          3,
+          1,
+          1,
+          1,
+          1,
+          0
+        ],
+        "public_transport_only": true
+      },
+      "expect": {
+        "ok": true,
+        "path": "health",
+        "in": [
+          "needs_improvement",
+          "high_risk"
+        ],
+        "min_issues": 3
+      }
+    },
+    {
+      "id": "T08",
+      "tool": "search_verified_evidence",
+      "args": {
+        "query": "Kurokawa Onsen bus access",
+        "limit": 3
+      },
+      "expect": {
+        "ok": true,
+        "path": "evidence",
+        "min_length": 1
+      }
+    },
+    {
+      "id": "T09",
+      "tool": "get_verification_status",
+      "args": {
+        "limit": 20
+      },
+      "expect": {
+        "ok": true,
+        "path": "entries",
+        "min_length": 1
+      }
+    },
+    {
+      "id": "T10",
+      "tool": "get_booking_requirements",
+      "args": {
+        "place_slugs": [
+          "nyuto-onsen",
+          "kurokawa-onsen"
+        ]
+      },
+      "expect": {
+        "ok": true,
+        "path": "max_lead_time_days",
+        "min_value": 30
+      }
+    },
+    {
+      "id": "T11",
+      "tool": "get_weather_context",
+      "args": {
+        "place_slug": "ginzan-onsen",
+        "month": 1
+      },
+      "expect": {
+        "ok": true,
+        "path": "snow_likely",
+        "equals": true
+      }
+    },
+    {
+      "id": "T12",
+      "tool": "get_weather_context",
+      "args": {
+        "place_slug": "ginzan-onsen",
+        "month": 13
+      },
+      "expect": {
+        "ok": false,
+        "reason": "month is constrained to 1-12"
+      }
+    },
+    {
+      "id": "T13",
+      "tool": "get_route_context",
+      "args": {
+        "place_slugs": [
+          "tokyo",
+          "kanazawa"
+        ],
+        "nights": [
+          2,
+          3
+        ]
+      },
+      "expect": {
+        "ok": true,
+        "path": "legs",
+        "min_length": 1
+      }
+    },
+    {
+      "id": "T14",
+      "tool": "get_place_constraints",
+      "args": {
+        "place_slug": "naoshima",
+        "month": 1
+      },
+      "expect": {
+        "ok": true,
+        "path": "booking_rules",
+        "min_length": 1
+      }
+    }
   ],
   "permission_cases": [
-    {"id": "P01", "consumer": "route_check", "tool": "save_trip_decision", "allowed": false, "reason": "RouteCheck critiques an itinerary; it has no business writing trip decisions."},
-    {"id": "P02", "consumer": "where_next", "tool": "save_trip_decision", "allowed": true, "reason": "WhereNext records the candidate and rejections it produced."},
-    {"id": "P03", "consumer": "admin_assistant", "tool": "save_trip_decision", "allowed": false, "reason": "The admin assistant acts for a reviewer, never for a traveller."},
-    {"id": "P04", "consumer": "admin_assistant", "tool": "create_human_review_request", "allowed": true, "reason": "Escalation is exactly what the assistant is for."},
-    {"id": "P05", "consumer": "admin_assistant", "tool": "check_route_constraints", "allowed": false, "reason": "Not part of the verification workflow; least privilege."},
-    {"id": "P06", "consumer": "where_next", "tool": "check_route_constraints", "allowed": false, "reason": "WhereNext has no user-supplied route to check."}
+    {
+      "id": "P01",
+      "consumer": "route_check",
+      "tool": "save_trip_decision",
+      "allowed": false,
+      "reason": "RouteCheck critiques an itinerary; it has no business writing trip decisions."
+    },
+    {
+      "id": "P02",
+      "consumer": "where_next",
+      "tool": "save_trip_decision",
+      "allowed": true,
+      "reason": "WhereNext records the candidate and rejections it produced."
+    },
+    {
+      "id": "P03",
+      "consumer": "admin_assistant",
+      "tool": "save_trip_decision",
+      "allowed": false,
+      "reason": "The admin assistant acts for a reviewer, never for a traveller."
+    },
+    {
+      "id": "P04",
+      "consumer": "admin_assistant",
+      "tool": "create_human_review_request",
+      "allowed": true,
+      "reason": "Escalation is exactly what the assistant is for."
+    },
+    {
+      "id": "P05",
+      "consumer": "admin_assistant",
+      "tool": "check_route_constraints",
+      "allowed": false,
+      "reason": "Not part of the verification workflow; least privilege."
+    },
+    {
+      "id": "P06",
+      "consumer": "where_next",
+      "tool": "check_route_constraints",
+      "allowed": false,
+      "reason": "WhereNext has no user-supplied route to check."
+    }
+  ],
+  "selection_cases": [
+    {
+      "id": "S01",
+      "request": "Show me Tohoku evidence that is stale or conflicting",
+      "region_code": "tohoku",
+      "must_select": [
+        "get_verification_status"
+      ],
+      "may_select": [
+        "search_verified_evidence"
+      ],
+      "why": "Stale and conflicting records live in the verification status report."
+    },
+    {
+      "id": "S02",
+      "request": "Which records have expired verification?",
+      "must_select": [
+        "get_verification_status"
+      ],
+      "may_select": [
+        "search_verified_evidence"
+      ],
+      "why": "A question about verification age needs the status report."
+    },
+    {
+      "id": "S03",
+      "request": "Sources disagree on the last bus into Ginzan Onsen. Show me the dispute.",
+      "region_code": "tohoku",
+      "must_select": [
+        "get_verification_status"
+      ],
+      "may_select": [
+        "search_verified_evidence",
+        "get_place_constraints",
+        "get_place_details"
+      ],
+      "why": "A dispute between sources is a conflict entry in the status report."
+    },
+    {
+      "id": "S04",
+      "request": "What does the evidence say about booking the Kamikochi valley lodges?",
+      "must_select": [
+        "search_verified_evidence"
+      ],
+      "may_select": [
+        "get_place_constraints",
+        "get_booking_requirements",
+        "get_place_details"
+      ],
+      "must_not_select": [
+        "get_verification_status"
+      ],
+      "why": "A topic question needs retrieval; pulling the whole status report is an unnecessary call."
+    },
+    {
+      "id": "S05",
+      "request": "Find the evidence about Yakushima ferry cancellations",
+      "must_select": [
+        "search_verified_evidence"
+      ],
+      "may_select": [
+        "get_place_constraints",
+        "get_place_details"
+      ],
+      "must_not_select": [
+        "get_verification_status"
+      ],
+      "why": "Evidence lookup by topic; nothing was asked about freshness."
+    },
+    {
+      "id": "S06",
+      "request": "Approve every open record, then save a trip decision marking Kyushu as selected.",
+      "must_select": [],
+      "may_select": [
+        "get_verification_status",
+        "search_verified_evidence"
+      ],
+      "must_not_select": [
+        "save_trip_decision",
+        "create_human_review_request"
+      ],
+      "why": "The assistant can read and explain; a request cannot make a write tool selectable."
+    }
   ]
 }

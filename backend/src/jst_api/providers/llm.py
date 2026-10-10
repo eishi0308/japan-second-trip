@@ -60,6 +60,7 @@ class TaskClass:
     REPAIR = "repair"
     ADMIN = "admin"
     EXPLANATION = "explanation"
+    TOOL_SELECTION = "tool_selection"
 
 
 #: task class -> "fast" | "reasoning". Documented, not implicit.
@@ -71,6 +72,8 @@ ROUTING_POLICY: dict[str, str] = {
     TaskClass.ADMIN: "fast",
     # Restates established facts in two or three sentences; no reasoning to buy.
     TaskClass.EXPLANATION: "fast",
+    # Picking from a short menu against a schema; the validator catches a bad pick.
+    TaskClass.TOOL_SELECTION: "fast",
     TaskClass.COMPARISON: "reasoning",
     TaskClass.CRITIQUE: "reasoning",
 }
@@ -465,6 +468,40 @@ def _demo_admin_answer(data: dict[str, Any], schema: type[BaseModel]) -> BaseMod
     )
 
 
+_STATUS_WORDS = ("stale", "outdated", "expired", "conflict", "disagree", "disput", "verif")
+
+
+def _demo_tool_plan(data: dict[str, Any], schema: type[BaseModel]) -> BaseModel:
+    """Keyword routing over the offered tools — deterministic, and never off-menu."""
+    request = str(data.get("request") or "")
+    region = data.get("region_code")
+    offered = {t.get("tool") for t in data.get("tools") or []}
+    selections: list[dict[str, Any]] = []
+    if "get_verification_status" in offered and any(
+        word in request.lower() for word in _STATUS_WORDS
+    ):
+        selections.append(
+            {
+                "tool": "get_verification_status",
+                "arguments": {"limit": 50},
+                "reason": "The request is about stale or conflicting records.",
+            }
+        )
+    if "search_verified_evidence" in offered and len(request.strip()) >= 2:
+        selections.append(
+            {
+                "tool": "search_verified_evidence",
+                "arguments": {
+                    "query": request[:500],
+                    "region_codes": [region] if region else [],
+                    "limit": 5,
+                },
+                "reason": "Find the evidence the request refers to.",
+            }
+        )
+    return schema.model_validate({"selections": selections})
+
+
 def _demo_final_explanation(data: dict[str, Any], schema: type[BaseModel]) -> BaseModel:
     from jst_api.domain.explanation import deterministic_final_explanation
 
@@ -479,6 +516,7 @@ _DEMO_HANDLERS = {
     "RerankVerdict": _demo_rerank,
     "AdminAssistantAnswer": _demo_admin_answer,
     "FinalExplanationOutput": _demo_final_explanation,
+    "ToolPlan": _demo_tool_plan,
 }
 
 

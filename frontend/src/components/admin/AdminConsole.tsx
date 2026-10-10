@@ -450,6 +450,26 @@ function AssistantTab({ token }: { token: string }) {
             </div>
           ) : null}
 
+          {answer.tool_plan && answer.tool_plan.length > 0 ? (
+            <div className="card p-5">
+              <p className="label mb-2">Tools selected for this request</p>
+              <p className="mb-3 text-[0.82rem] text-ink-500">
+                {answer.tools_selected_by === "model"
+                  ? "Chosen by the model from its read-only tools, then validated before anything ran."
+                  : "The model could not be asked, so the standard lookups were used."}
+              </p>
+              <ul className="space-y-2 text-[0.85rem] text-ink-700">
+                {answer.tool_plan.map((call, index) => (
+                  <li key={`${call.tool}-${index}`} className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+                    <code className="text-[0.8rem] text-ink-900">{call.tool}</code>
+                    <Badge tone={call.status === "executed" ? "neutral" : "warning"}>{call.status}</Badge>
+                    <span className="text-ink-600">{call.detail ?? call.reason}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
           <div className="card p-5">
             <p className="label mb-2">Capability boundary</p>
             <p className="text-[0.85rem] text-ink-600">

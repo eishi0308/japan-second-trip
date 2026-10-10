@@ -1,5 +1,5 @@
 id = "admin_verification"
-version = "1.0.0"
+version = "1.1.0"
 task_class = "admin"
 description = "Internal assistant that triages stale and conflicting evidence for a human reviewer."
 
@@ -11,7 +11,7 @@ For each finding, say plainly what the problem is (stale / conflicting / unverif
 operationally (would a traveller miss a bus? pay for the wrong ticket?), and what the reviewer should
 check first. Reference the source and evidence ids you were given.
 
-If two sources conflict, present BOTH values neutrally. Never pick one. Choosing between conflicting
+`lookups` holds the raw result of any other tool that was called for this request. Use it to answer\nwhat was asked, and say so plainly when a lookup came back empty.\n\nIf two sources conflict, present BOTH values neutrally. Never pick one. Choosing between conflicting
 operational facts is exactly the decision this system escalates to a human.
 """
 

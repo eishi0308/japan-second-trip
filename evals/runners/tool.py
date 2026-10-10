@@ -2,7 +2,8 @@
 
 Measures the things that actually go wrong with tool calling in production:
 argument validity, output shape, permission enforcement, failure handling and
-recovery. Every call goes through the real MCP session, so a schema regression
+recovery, and — where a model chooses its own tools — whether it chose the right
+ones and how many calls it made that the request did not need. Every call goes through the real MCP session, so a schema regression
 in the gateway fails this suite.
 """
 
@@ -65,6 +66,64 @@ def _check(expect: dict[str, Any], ok: bool, data: dict[str, Any]) -> tuple[bool
     if expect.get("has_message") and not data.get("message"):
         return False, "expected an explanatory message"
     return True, None
+
+
+async def _run_selection_cases(harness: Any, cases: list[dict[str, Any]]) -> dict[str, Any]:
+    """Ask the admin assistant each request and score the tools its model chose.
+
+    A case passes when every ``must_select`` tool was executed and no
+    ``must_not_select`` tool was. A selected tool outside ``must_select`` and
+    ``may_select`` still passes the case but counts as an unnecessary call.
+    """
+    from jst_api.agents.admin_assistant import AdminAssistant
+    from jst_api.prompts.registry import get_prompts
+
+    assistant = AdminAssistant(
+        harness.session_factory, harness.registry, get_prompts(), harness.settings
+    )
+    results: list[CaseResult] = []
+    selected_total = unnecessary = rejected = 0
+
+    for case in cases:
+        answer = await assistant.ask(case["request"], region_code=case.get("region_code"))
+        plan = answer["tool_plan"]
+        executed = [c["tool"] for c in plan if c["status"] == "executed"]
+        rejected += sum(1 for c in plan if c["status"] == "rejected")
+        expected = set(case.get("must_select", [])) | set(case.get("may_select", []))
+        extra = [t for t in executed if t not in expected]
+        selected_total += len(executed)
+        unnecessary += len(extra)
+
+        missing = [t for t in case.get("must_select", []) if t not in executed]
+        forbidden = [t for t in case.get("must_not_select", []) if t in executed]
+        failure = None
+        if missing:
+            failure = f"did not select {missing}"
+        elif forbidden:
+            failure = f"selected {forbidden}, which this request must not trigger"
+        results.append(
+            CaseResult(
+                case_id=case["id"],
+                passed=failure is None,
+                score=1.0 if failure is None else 0.0,
+                metrics={"selected": len(executed), "unnecessary": len(extra)},
+                detail={
+                    "request": case["request"],
+                    "executed": executed,
+                    "selected_by": answer["tools_selected_by"],
+                    "why": case["why"],
+                },
+                failure=failure,
+            )
+        )
+
+    passed = sum(1 for r in results if r.passed)
+    return {
+        "cases": results,
+        "accuracy": round(passed / len(results), 4) if results else None,
+        "unnecessary_rate": round(unnecessary / selected_total, 4) if selected_total else 0.0,
+        "rejected": rejected,
+    }
 
 
 async def run(*, persist: bool = True, quiet: bool = False) -> SuiteResult:
@@ -232,6 +291,10 @@ async def run(*, persist: bool = True, quiet: bool = False) -> SuiteResult:
             failed_calls = [c for c in trace.tool_calls if not c.ok]
             unnecessary_calls = sum(1 for c in trace.tool_calls if c.cache_hit)
 
+        # -- selection: does the model pick the right tools for a request? ----
+        selection = await _run_selection_cases(harness, dataset.get("selection_cases", []))
+        result.cases.extend(selection["cases"])
+
     result.duration_ms = timer.ms
     result.metrics = {
         "pass_rate": result.pass_rate,
@@ -240,6 +303,9 @@ async def run(*, persist: bool = True, quiet: bool = False) -> SuiteResult:
         "mean_latency_ms": mean(latencies),
         "failed_tool_calls": len(failed_calls),
         "redundant_calls": unnecessary_calls,
+        "selection_accuracy": selection["accuracy"],
+        "unnecessary_selection_rate": selection["unnecessary_rate"],
+        "rejected_selections": selection["rejected"],
     }
     if persist:
         await persist_suite(harness, result)

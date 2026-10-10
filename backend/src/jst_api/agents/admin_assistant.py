@@ -10,16 +10,29 @@ the *narrowest* allowlist of the three consumers — it can read and escalate, b
 it cannot write trip state, and it can never approve its own findings. Approval
 is a human action, by construction.
 
-This is a single-shot assistant, not a graph: there is no branching decision to
-make, so a StateGraph here would be ceremony.
+It is also the one place the model selects its own tools. A reviewer's request is
+free text, so which lookups it needs is a judgement; the model makes it, and
+``agents/common/selection.py`` validates every choice before anything runs. The
+traveller-facing graphs keep a fixed tool sequence on purpose.
+
+This is a plan-then-execute assistant, not a graph: there is no branching
+decision to make, so a StateGraph here would be ceremony.
 """
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from jst_api.agents.common.selection import (
+    PlannedCall,
+    ToolPlan,
+    ToolSelection,
+    tool_catalogue,
+    validate_plan,
+)
 from jst_api.agents.common.tools import ToolBelt, ToolBudget
 from jst_api.core.config import Settings
 from jst_api.core.logging import get_logger
@@ -77,6 +90,8 @@ class AdminAssistant:
 
         trace = RunTrace(graph_name="admin_assistant", thread_id="admin")
         findings: list[dict[str, Any]] = []
+        evidence_refs: list[dict[str, Any]] = []
+        lookups: list[dict[str, Any]] = []
 
         async with TravelMcpSession(self._backend) as mcp:
             belt = ToolBelt(
@@ -85,55 +100,30 @@ class AdminAssistant:
                 trace=trace,
                 budget=ToolBudget(max_calls=8),
             )
+            belt.current_node = "select_tools"
+            plan, selected_by = await self._select_tools(cleaned, region_code, belt, trace)
+
             belt.current_node = "triage"
-
-            status = await belt.call_optional(
-                "get_verification_status", {"limit": 50, "stale_only": False}
-            )
-            if status:
-                for entry in status.get("entries", []):
-                    if entry.get("requires_reverification"):
-                        findings.append(
-                            {
-                                "subject": entry["subject"],
-                                "issue": (
-                                    f"{entry['field_name']} = '{entry['value']}' is {entry['freshness']}; "
-                                    "it is past its re-check window for this topic."
-                                ),
-                                "severity": "warning",
-                                "values": [entry["value"]],
-                                "evidence_ids": [],
-                                "verified_at": entry.get("verified_at"),
-                                "review_task_id": None,
-                            }
-                        )
-                for conflict in status.get("conflicts", []):
-                    findings.append(
-                        {
-                            "subject": conflict["subject"],
-                            "issue": (
-                                f"Sources disagree on {conflict['field_name']}: "
-                                f"{', '.join(conflict['values'])}. Not resolvable automatically."
-                            ),
-                            "severity": "critical",
-                            "values": conflict["values"],
-                            "evidence_ids": conflict.get("evidence_ids", []),
-                            "verified_at": None,
-                            "review_task_id": conflict.get("open_review_task_id"),
-                        }
+            for call in plan:
+                if call.status != "planned":
+                    continue
+                data = await belt.call_optional(call.tool, call.arguments)
+                if data is None:
+                    call.status = "failed"
+                    call.detail = "the tool did not return a result"
+                    continue
+                call.status = "executed"
+                if call.tool == "get_verification_status":
+                    findings.extend(_findings_from_status(data))
+                elif call.tool == "search_verified_evidence":
+                    known = {e["evidence_id"] for e in evidence_refs}
+                    evidence_refs.extend(
+                        e for e in data.get("evidence", []) if e["evidence_id"] not in known
                     )
-
-            # Retrieval over the same gateway, so the reviewer's question steers
-            # which evidence is surfaced.
-            evidence = await belt.call_optional(
-                "search_verified_evidence",
-                {
-                    "query": cleaned,
-                    "region_codes": [region_code] if region_code else [],
-                    "limit": 5,
-                },
-            )
-            evidence_refs = (evidence or {}).get("evidence", [])
+                else:
+                    lookups.append(
+                        {"tool": call.tool, "arguments": call.arguments, "result": _trim(data)}
+                    )
 
             if region_code:
                 findings = [
@@ -157,6 +147,7 @@ class AdminAssistant:
                     }
                     for e in evidence_refs
                 ],
+                "lookups": lookups,
                 "region_code": region_code,
             }
             user = f"{prompt.render_user(request=cleaned)}\n\n{structured_block(payload)}"
@@ -183,6 +174,8 @@ class AdminAssistant:
                     "detail": "",
                 }
 
+        result["tool_plan"] = [call.to_dict() for call in plan]
+        result["tools_selected_by"] = selected_by
         result["evidence"] = evidence_refs
         result["trace"] = trace.summary()
         result["tools_available"] = sorted(
@@ -194,3 +187,104 @@ class AdminAssistant:
         )
         result["can_write_trip_state"] = False
         return result
+
+    async def _select_tools(
+        self, request: str, region_code: str | None, belt: ToolBelt, trace: RunTrace
+    ) -> tuple[list[PlannedCall], str]:
+        """Ask the model which lookups this request needs; fall back to the standard pair."""
+        prompt = self._prompts.get("tool_selection")
+        payload = {
+            "request": request,
+            "region_code": region_code,
+            "tools": tool_catalogue(belt.allowlist),
+        }
+        user = f"{prompt.render_user(request=request)}\n\n{structured_block(payload)}"
+        try:
+            plan, usages = await complete_with_repair(
+                self._registry.llm,
+                system=prompt.system,
+                user=user,
+                schema=ToolPlan,
+                model=self._registry.router.model_for(TaskClass.TOOL_SELECTION),
+            )
+        except Exception as exc:
+            log.warning("admin_assistant.tool_selection_failed", error=str(exc)[:300])
+            trace.record_fallback("tool_selection:default_plan")
+            return validate_plan(
+                default_plan(request, region_code), allowlist=belt.allowlist
+            ), "default"
+
+        for usage in usages:
+            trace.record_usage(usage, prompt=prompt.label)
+        calls = validate_plan(plan, allowlist=belt.allowlist)
+        for call in calls:
+            if call.status == "rejected":
+                log.warning(
+                    "admin_assistant.selection_rejected", tool=call.tool, detail=call.detail
+                )
+            elif call.tool == "search_verified_evidence" and region_code:
+                call.arguments.setdefault("region_codes", [region_code])
+        return calls, "model"
+
+
+def default_plan(request: str, region_code: str | None) -> ToolPlan:
+    """The lookups used when the model cannot be asked: status, then evidence."""
+    return ToolPlan(
+        selections=[
+            ToolSelection(
+                tool="get_verification_status",
+                arguments={"limit": 50},
+                reason="Standard triage: stale and conflicting records.",
+            ),
+            ToolSelection(
+                tool="search_verified_evidence",
+                arguments={
+                    "query": request if len(request) >= 2 else "verification",
+                    "region_codes": [region_code] if region_code else [],
+                    "limit": 5,
+                },
+                reason="Standard triage: evidence matching the request.",
+            ),
+        ]
+    )
+
+
+def _findings_from_status(status: dict[str, Any]) -> list[dict[str, Any]]:
+    findings: list[dict[str, Any]] = []
+    for entry in status.get("entries", []):
+        if entry.get("requires_reverification"):
+            findings.append(
+                {
+                    "subject": entry["subject"],
+                    "issue": (
+                        f"{entry['field_name']} = '{entry['value']}' is {entry['freshness']}; "
+                        "it is past its re-check window for this topic."
+                    ),
+                    "severity": "warning",
+                    "values": [entry["value"]],
+                    "evidence_ids": [],
+                    "verified_at": entry.get("verified_at"),
+                    "review_task_id": None,
+                }
+            )
+    for conflict in status.get("conflicts", []):
+        findings.append(
+            {
+                "subject": conflict["subject"],
+                "issue": (
+                    f"Sources disagree on {conflict['field_name']}: "
+                    f"{', '.join(conflict['values'])}. Not resolvable automatically."
+                ),
+                "severity": "critical",
+                "values": conflict["values"],
+                "evidence_ids": conflict.get("evidence_ids", []),
+                "verified_at": None,
+                "review_task_id": conflict.get("open_review_task_id"),
+            }
+        )
+    return findings
+
+
+def _trim(data: dict[str, Any], *, max_chars: int = 1500) -> str:
+    """A bounded view of a lookup for the narration prompt's context budget."""
+    return json.dumps(data, ensure_ascii=False, default=str)[:max_chars]

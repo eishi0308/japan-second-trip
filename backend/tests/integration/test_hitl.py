@@ -231,6 +231,94 @@ class TestAdminAssistant:
         assert body["findings"], "the seeded conflict and stale fact must be found"
         assert body["trace"]["tool_calls"] > 0, "it must actually use the gateway"
 
+    async def test_the_model_selects_its_tools_and_the_selection_is_shown(
+        self, client, admin_headers, session_factory
+    ):
+        await _reopen_seeded_conflict(session_factory)
+        body = (
+            await client.post(
+                "/api/v1/admin/assistant",
+                headers=admin_headers,
+                json={"request": "Show me evidence that is stale or conflicting"},
+            )
+        ).json()
+        executed = [c["tool"] for c in body["tool_plan"] if c["status"] == "executed"]
+        assert body["tools_selected_by"] == "model"
+        assert "get_verification_status" in executed
+        assert body["trace"]["tool_calls"] == len(executed), "only selected tools are called"
+        assert "tool_selection" in body["trace"]["prompt_versions"]
+
+    async def test_a_topic_question_skips_the_status_report(self, client, admin_headers):
+        body = (
+            await client.post(
+                "/api/v1/admin/assistant",
+                headers=admin_headers,
+                json={"request": "What do we hold on Kamikochi lodges?"},
+            )
+        ).json()
+        assert [c["tool"] for c in body["tool_plan"]] == ["search_verified_evidence"]
+        assert body["evidence"], "the selected search must still return evidence"
+
+    async def test_an_off_menu_selection_is_rejected_not_executed(
+        self, client, admin_headers, registry, monkeypatch
+    ):
+        from jst_api.agents.common.selection import ToolPlan
+        from jst_api.providers.base import LLMUsage
+
+        real = registry.llm.complete_structured
+
+        async def hijacked(**kwargs):
+            if kwargs["schema"] is ToolPlan:
+                plan = ToolPlan.model_validate(
+                    {
+                        "selections": [
+                            {"tool": "save_trip_decision", "arguments": {"trip_id": "x"}},
+                            {"tool": "create_human_review_request", "arguments": {}},
+                            {"tool": "get_verification_status", "arguments": {}},
+                        ]
+                    }
+                )
+                return plan, LLMUsage(model="demo", provider="demo")
+            return await real(**kwargs)
+
+        monkeypatch.setattr(registry.llm, "complete_structured", hijacked)
+        body = (
+            await client.post(
+                "/api/v1/admin/assistant", headers=admin_headers, json={"request": "anything"}
+            )
+        ).json()
+        status = {c["tool"]: c["status"] for c in body["tool_plan"]}
+        assert status == {
+            "save_trip_decision": "rejected",
+            "create_human_review_request": "rejected",
+            "get_verification_status": "executed",
+        }
+        assert body["trace"]["tool_calls"] == 1
+
+    async def test_a_selection_outage_falls_back_to_the_standard_lookups(
+        self, client, admin_headers, registry, monkeypatch
+    ):
+        from jst_api.agents.common.selection import ToolPlan
+
+        real = registry.llm.complete_structured
+
+        async def flaky(**kwargs):
+            if kwargs["schema"] is ToolPlan:
+                raise ConnectionError("model unreachable")
+            return await real(**kwargs)
+
+        monkeypatch.setattr(registry.llm, "complete_structured", flaky)
+        body = (
+            await client.post(
+                "/api/v1/admin/assistant", headers=admin_headers, json={"request": "anything"}
+            )
+        ).json()
+        assert body["tools_selected_by"] == "default"
+        assert [c["tool"] for c in body["tool_plan"]] == [
+            "get_verification_status",
+            "search_verified_evidence",
+        ]
+
     async def test_it_cannot_write_trip_state(self, client, admin_headers):
         body = (
             await client.post(
