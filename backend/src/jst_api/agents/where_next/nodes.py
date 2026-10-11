@@ -897,7 +897,7 @@ def _explanation_facts(result: dict[str, Any]) -> dict[str, Any]:
     if best:
         headline = (
             f"{best['region_name']} is the strongest fit for this trip, "
-            f"scoring {best['deterministic_score']:g}/100 ({best['fit_label']} fit)"
+            f"scoring {best['deterministic_score']:.0f}/100 ({best['fit_label']} fit)"
         )
     else:
         headline = "No region fits this trip as described"
@@ -907,7 +907,8 @@ def _explanation_facts(result: dict[str, Any]) -> dict[str, Any]:
         "supporting": (best or {}).get("reasons", [])[:3],
         "tradeoffs": (best or {}).get("tradeoffs", [])[:2],
         "alternatives": [
-            f"{a['region_name']} ({a['deterministic_score']:g}/100)" for a in result["alternatives"]
+            f"{a['region_name']} ({a['deterministic_score']:.0f}/100)"
+            for a in result["alternatives"]
         ],
         "ruled_out": [
             f"{r['region_name']}: {r['rejected_reasons'][0]}"

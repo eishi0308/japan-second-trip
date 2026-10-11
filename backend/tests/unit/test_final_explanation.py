@@ -94,7 +94,10 @@ class TestWrittenSummary:
         summary = await write_final_explanation(ctx, FACTS)
         assert summary["source"] == "model"
         assert summary["verdict"].startswith("This route needs work")
-        assert ctx.trace.prompt_versions["final_explanation"] == "1.0.0"
+        assert (
+            ctx.trace.prompt_versions["final_explanation"]
+            == get_prompts().get("final_explanation").version
+        )
         assert FALLBACK_NAME not in ctx.trace.fallbacks_used
 
     async def test_an_invented_departure_time_is_discarded(self):

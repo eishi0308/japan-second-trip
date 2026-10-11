@@ -1,5 +1,5 @@
 id = "final_explanation"
-version = "1.0.0"
+version = "1.1.0"
 task_class = "explanation"
 description = "Write the closing summary of a finished analysis: the verdict, what to do next, what to hold loosely."
 
@@ -19,7 +19,10 @@ Return:
   booking something the input says needs booking. Never tell the traveller to "check online".
 - `caveats`: at most three things to hold loosely. Every entry in `conflicts` must be reflected here:
   say the sources disagree and that the detail is unconfirmed; never pick one of the disputed values.
-  If `human_review_required` is true, say a reviewer has been asked to confirm it. If `confidence` is
+  Name the disputed detail in the words the `conflicts` entry uses — do not reword which place it
+  concerns or which direction a service runs, because you cannot tell that from the entry.
+  If `human_review_required` is true, say a reviewer has been asked to confirm that disputed detail
+  — not the route, and not the analysis as a whole. If `confidence` is
   "low", say so plainly. Use `unknowns` for what could not be established. Return an empty list when
   there is genuinely nothing to caveat — do not invent a caveat to fill the field.
 
