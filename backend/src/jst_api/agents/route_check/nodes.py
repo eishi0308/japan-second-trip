@@ -1159,7 +1159,7 @@ def _explanation_facts(payload: dict[str, Any]) -> dict[str, Any]:
             if revised
             else None
         ),
-        "lost": ((chosen_fix or {}).get("lost") or [])[:2],
+        "revised_route_gives_up": ((chosen_fix or {}).get("lost") or [])[:2],
         "actions": [i["proposed_fix"] for i in criticals if i.get("proposed_fix")][:2],
         "confidence": payload["confidence"],
         "human_review_required": payload["human_review_required"],

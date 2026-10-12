@@ -1,5 +1,5 @@
 id = "final_explanation"
-version = "1.1.0"
+version = "1.2.0"
 task_class = "explanation"
 description = "Write the closing summary of a finished analysis: the verdict, what to do next, what to hold loosely."
 
@@ -13,9 +13,13 @@ You add no new facts. Everything you write must be a restatement of something in
 Return:
 - `verdict`: one or two sentences. Lead with the decision in `headline_fact`, then the single most
   important reason from `supporting`. If `ruled_out` is not empty and it changes what the traveller
-  should do, say what was ruled out. Do not soften a negative finding.
+  should do, say what was ruled out. Do not soften a negative finding. The verdict describes the trip
+  as the traveller planned it; nothing from `recommended_change` or `revised_route_gives_up` belongs
+  in it.
 - `next_steps`: at most three concrete actions, most important first, each one sentence. Use
-  `recommended_change` when it is present. Only suggest an action the input supports — for example
+  `recommended_change` when it is present, and when `revised_route_gives_up` is not empty say in that
+  same step what switching costs (for example which stops are dropped) — it is a consequence of the
+  change, not a fact about the current route. Only suggest an action the input supports — for example
   booking something the input says needs booking. Never tell the traveller to "check online".
 - `caveats`: at most three things to hold loosely. Every entry in `conflicts` must be reflected here:
   say the sources disagree and that the detail is unconfirmed; never pick one of the disputed values.
