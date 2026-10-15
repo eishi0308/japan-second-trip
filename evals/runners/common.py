@@ -188,7 +188,13 @@ async def _require_matching_corpus(session_factory: Any, embedder: Any) -> None:
 
     async with session_factory() as session:
         stored = set(
-            (await session.scalars(select(EvidenceChunk.embedding_model).distinct())).all()
+            (
+                await session.scalars(
+                    select(EvidenceChunk.embedding_model)
+                    .where(EvidenceChunk.embedding.is_not(None))
+                    .distinct()
+                )
+            ).all()
         )
     expected = getattr(embedder, "model", "unknown")
     if stored and stored != {expected}:

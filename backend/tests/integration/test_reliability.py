@@ -238,26 +238,13 @@ class TestProviderDegradation:
 
 
 class TestIngestionEmbeddingFailure:
-    async def test_a_failed_embedding_call_leaves_nothing_behind_and_can_be_retried(
-        self, session_factory, registry, settings, seeded
-    ):
-        """An embedding outage must cost one ingestion, not the knowledge base.
+    """An embedding outage must cost vectors for a while, never the document."""
 
-        The upstream call is retried a bounded number of times; when it still
-        fails the request's transaction is rolled back, so no half-written
-        source claims the content was ingested and the same call works later.
-        """
-        from sqlalchemy import delete, func, select
+    TITLE = "Embedding outage fixture"
+    TEXT = "The last bus from Oishida to Ginzan Onsen leaves in the late afternoon. " * 6
 
-        from jst_api.db.models import EvidenceChunk, Source, SourceDocument
-        from jst_api.domain.enums import SourceType
-        from jst_api.knowledge.embeddings import ProviderEmbeddings
-        from jst_api.knowledge.ingest import IngestionService
-
-        title = "Embedding outage fixture"
-        text = "The last bus from Oishida to Ginzan Onsen leaves in the late afternoon. " * 6
-        attempts = {"n": 0}
-
+    @staticmethod
+    def down_embeddings(attempts: dict[str, int]):
         class DownEmbeddings:
             model = "down"
 
@@ -273,45 +260,102 @@ class TestIngestionEmbeddingFailure:
                     policy=RetryPolicy(max_attempts=3, base_delay=0.001),
                 )
 
-        async def ingest(embeddings):
-            # Mirrors the request-scoped session: commit on success, roll back on error.
-            async with session_factory() as s:
-                try:
-                    result = await IngestionService(s, embeddings, settings).ingest_text(
-                        text, title=title, source_type=SourceType.DEMO_SEED
-                    )
-                    await s.commit()
-                    return result
-                except Exception:
-                    await s.rollback()
-                    raise
+        return DownEmbeddings()
 
-        async def stored() -> tuple[int, int]:
-            async with session_factory() as s:
-                sources = await s.scalar(
-                    select(func.count()).select_from(Source).where(Source.title == title)
-                )
-                chunks = await s.scalar(
-                    select(func.count())
-                    .select_from(EvidenceChunk)
-                    .join(Source, Source.id == EvidenceChunk.source_id)
-                    .where(Source.title == title)
-                )
-                return int(sources or 0), int(chunks or 0)
+    async def _stored(self, session_factory) -> dict[str, object]:
+        from sqlalchemy import func, select
 
-        with pytest.raises(ProviderError):
-            await ingest(DownEmbeddings())
-        assert attempts["n"] == 3, "the embedding call is retried, and the retries are bounded"
-        assert await stored() == (0, 0), "a failed ingestion must not leave a source behind"
+        from jst_api.db.models import EvidenceChunk, Source
 
-        result = await ingest(ProviderEmbeddings(registry.embeddings))
-        try:
-            assert result.chunks_written > 0
-            assert await stored() == (1, result.chunks_written)
-        finally:
-            # The database is shared by the whole test session; leave it as found.
-            async with session_factory() as s:
+        async with session_factory() as s:
+            source = await s.scalar(select(Source).where(Source.title == self.TITLE))
+            if source is None:
+                return {"source": None}
+            total = await s.scalar(
+                select(func.count())
+                .select_from(EvidenceChunk)
+                .where(EvidenceChunk.source_id == source.id)
+            )
+            pending = await s.scalar(
+                select(func.count())
+                .select_from(EvidenceChunk)
+                .where(EvidenceChunk.source_id == source.id, EvidenceChunk.embedding.is_(None))
+            )
+            return {"source": source, "chunks": int(total or 0), "pending": int(pending or 0)}
+
+    async def _cleanup(self, session_factory) -> None:
+        from sqlalchemy import delete, select
+
+        from jst_api.db.models import EvidenceChunk, Source, SourceDocument
+
+        async with session_factory() as s:
+            source_id = await s.scalar(select(Source.id).where(Source.title == self.TITLE))
+            if source_id:
                 for model in (EvidenceChunk, SourceDocument):
-                    await s.execute(delete(model).where(model.source_id == result.source_id))
-                await s.execute(delete(Source).where(Source.id == result.source_id))
+                    await s.execute(delete(model).where(model.source_id == source_id))
+                await s.execute(delete(Source).where(Source.id == source_id))
                 await s.commit()
+
+    async def test_the_document_is_kept_and_its_vectors_filled_in_later(
+        self, session_factory, registry, settings, seeded
+    ):
+        from jst_api.db.repositories.evidence_repo import EvidenceRepository
+        from jst_api.domain.enums import SourceType
+        from jst_api.knowledge.embeddings import ProviderEmbeddings
+        from jst_api.knowledge.ingest import PENDING_EMBEDDING, IngestionService
+        from jst_api.knowledge.reembed import embed_pending_once
+
+        attempts = {"n": 0}
+        try:
+            async with session_factory() as s:
+                result = await IngestionService(
+                    s, self.down_embeddings(attempts), settings
+                ).ingest_text(self.TEXT, title=self.TITLE, source_type=SourceType.DEMO_SEED)
+                await s.commit()
+
+            assert attempts["n"] == 3, "the provider retries, and the retries are bounded"
+            assert result.embedding_pending and result.chunks_written > 0
+            stored = await self._stored(session_factory)
+            assert stored["source"].status == PENDING_EMBEDDING
+            assert stored["pending"] == stored["chunks"] == result.chunks_written
+
+            # Findable by keyword straight away; invisible to dense search until it has vectors.
+            async with session_factory() as s:
+                hits = await EvidenceRepository(s).keyword_search("Oishida Ginzan last bus", k=20)
+            assert any(hit.chunk.source_id == result.source_id for hit in hits)
+
+            # A pass while the provider is still down changes nothing and raises.
+            with pytest.raises(ProviderError):
+                await embed_pending_once(session_factory, self.down_embeddings(attempts), settings)
+            assert (await self._stored(session_factory))["pending"] == result.chunks_written
+
+            # Once it is back, the next pass fills every vector and clears the status.
+            filled = await embed_pending_once(
+                session_factory, ProviderEmbeddings(registry.embeddings), settings
+            )
+            assert filled["chunks_embedded"] >= result.chunks_written
+            stored = await self._stored(session_factory)
+            assert stored["pending"] == 0
+            assert stored["source"].status == "active"
+        finally:
+            await self._cleanup(session_factory)
+
+    async def test_the_admin_can_retry_now(self, client, admin_headers):
+        body = (
+            await client.post("/api/v1/admin/sources/embeddings/retry", headers=admin_headers)
+        ).json()
+        assert set(body) == {"chunks_embedded", "sources_completed", "still_pending"}
+        assert body["still_pending"] == 0
+
+
+class TestReembedBackoff:
+    async def test_the_interval_doubles_while_failing_and_resets_on_success(self):
+        from jst_api.knowledge.reembed import next_delay
+
+        delay = 300.0
+        delays = []
+        for _ in range(6):
+            delay = next_delay(delay, base=300, ceiling=3600, failed=True)
+            delays.append(delay)
+        assert delays == [600, 1200, 2400, 3600, 3600, 3600], "bounded, never a retry storm"
+        assert next_delay(delay, base=300, ceiling=3600, failed=False) == 300

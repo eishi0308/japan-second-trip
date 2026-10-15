@@ -141,6 +141,13 @@ class Settings(BaseSettings):
     agent_recursion_limit: int = 40
     context_token_budget: int = 6000
 
+    # ---- ingestion ---------------------------------------------------------
+    embedding_retry_interval_seconds: int = 300
+    """How often the background job retries chunks stored without vectors.
+    0 disables it; the admin "retry now" action still works."""
+    embedding_retry_max_interval_seconds: int = 3600
+    """Ceiling for the backoff while the embedding provider keeps failing."""
+
     # ---- freshness ---------------------------------------------------------
     default_freshness_ttl_days: int = 180
     critical_freshness_ttl_days: int = 90

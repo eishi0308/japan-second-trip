@@ -141,6 +141,18 @@ async def refresh_source(
     return result.to_dict()
 
 
+@router.post("/sources/embeddings/retry")
+async def retry_pending_embeddings(
+    _admin: AdminDep,
+    session: SessionDep,
+    registry: RegistryDep,
+    settings: SettingsDep,
+) -> dict[str, Any]:
+    """Fill in vectors for chunks ingested during an embedding outage, now."""
+    service = IngestionService(session, ProviderEmbeddings(registry.embeddings), settings)
+    return await service.embed_pending()
+
+
 @router.get("/allowlist")
 async def get_allowlist(_admin: AdminDep, settings: SettingsDep) -> dict[str, Any]:
     return {"domains": settings.ingest_domain_allowlist}

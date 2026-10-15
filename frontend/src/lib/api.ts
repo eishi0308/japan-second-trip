@@ -126,6 +126,11 @@ export const api = {
     sources: (token: string) => apiFetch<{ sources: AdminSource[] }>("/api/v1/admin/sources", { token }),
     createSource: (token: string, body: unknown) =>
       apiFetch<Record<string, unknown>>("/api/v1/admin/sources", { method: "POST", body, token }),
+    retryEmbeddings: (token: string) =>
+      apiFetch<{ chunks_embedded: number; sources_completed: number; still_pending: number }>(
+        "/api/v1/admin/sources/embeddings/retry",
+        { method: "POST", body: {}, token },
+      ),
     refreshSource: (token: string, id: string) =>
       apiFetch<Record<string, unknown>>(`/api/v1/admin/sources/${id}/refresh`, { method: "POST", body: {}, token }),
     queue: (token: string) => apiFetch<VerificationQueue>("/api/v1/admin/verification/queue", { token }),

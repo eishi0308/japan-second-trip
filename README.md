@@ -110,7 +110,10 @@ Not "an LLM in a loop". Specifically:
 - **State and memory.** Trip decisions persist and constrain later analyses. A
   region the traveller rejected is never silently re-proposed.
 - **Degradation.** A provider outage produces a thinner answer, not a failed
-  request. A failing LLM falls through to a secondary, tagged in the trace.
+  request. A failing LLM falls through to a secondary, tagged in the trace. An
+  embedding outage during ingestion keeps the document: its chunks are stored
+  without vectors, found by keyword search straight away, and given vectors by a
+  background job that backs off while the provider is down.
 - **Human escalation.** When approved sources disagree, the system stops and asks
   a person — then re-runs every analysis that was waiting.
 - **Evaluation.** Six suites, versioned datasets, and eight defects that these

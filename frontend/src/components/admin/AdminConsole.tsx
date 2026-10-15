@@ -508,7 +508,11 @@ function SourcesTab({ token }: { token: string }) {
         trust_level: "primary",
         official_source: true,
       });
-      setMessage(`Ingested — ${result.chunks_written} chunk(s) written.`);
+      setMessage(
+        result.embedding_pending
+          ? `Stored ${result.chunks_written} chunk(s), but embedding failed. They are keyword-searchable now and get vectors on the next retry.`
+          : `Ingested — ${result.chunks_written} chunk(s) written.`,
+      );
       reload();
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Ingestion failed");
@@ -517,8 +521,46 @@ function SourcesTab({ token }: { token: string }) {
     }
   }
 
+  const pendingSources = data?.sources.filter((source) => source.status === "pending_embedding") ?? [];
+
+  async function retryEmbeddings() {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const result = await api.admin.retryEmbeddings(token);
+      setMessage(
+        result.still_pending > 0
+          ? `Embedded ${result.chunks_embedded} chunk(s); ${result.still_pending} still waiting.`
+          : `Embedded ${result.chunks_embedded} chunk(s). Nothing is waiting for embeddings.`,
+      );
+      reload();
+    } catch (err) {
+      setMessage(
+        err instanceof Error
+          ? `Embedding is still failing: ${err.message}. It is retried automatically.`
+          : "Embedding retry failed",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <Panel loading={loading} error={error}>
+      {pendingSources.length > 0 ? (
+        <div className="card mb-8 p-5" role="status">
+          <p className="font-serif text-[1.02rem] text-ink-900">
+            {pendingSources.length} source(s) waiting for embeddings
+          </p>
+          <p className="mt-1.5 text-[0.86rem] text-ink-600">
+            They were stored while the embedding provider was failing. Keyword search finds them already;
+            vector search will once they are embedded. A background job retries on its own.
+          </p>
+          <button type="button" className="btn-secondary mt-3" onClick={retryEmbeddings} disabled={busy}>
+            {busy ? "Retrying…" : "Retry embeddings now"}
+          </button>
+        </div>
+      ) : null}
       <SectionHeading
         eyebrow="Knowledge base"
         title="Add a source"
@@ -589,7 +631,9 @@ function SourcesTab({ token }: { token: string }) {
                   <td className="px-4 py-2.5 text-right tabular-nums text-ink-700">{source.chunk_count}</td>
                   <td className="px-4 py-2.5 tabular-nums text-ink-600">{source.verified_at?.slice(0, 10) ?? "—"}</td>
                   <td className="px-4 py-2.5">
-                    <Badge tone={source.status === "changed" ? "warning" : "neutral"}>{source.status}</Badge>
+                    <Badge tone={source.status === "changed" || source.status === "pending_embedding" ? "warning" : "neutral"}>
+                      {source.status.replace(/_/g, " ")}
+                    </Badge>
                   </td>
                 </tr>
               ))}

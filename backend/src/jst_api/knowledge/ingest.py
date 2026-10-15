@@ -19,10 +19,11 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from jst_api.core.config import Settings
+from jst_api.core.errors import ProviderError
 from jst_api.core.logging import get_logger
 from jst_api.db.models import EvidenceChunk, Source, SourceDocument, VerificationRecord
 from jst_api.domain.enums import EvidenceTopic, ReviewReason, SourceType, TrustLevel
@@ -30,6 +31,9 @@ from jst_api.knowledge.chunking import ChunkMetadata, build_search_text, chunk_d
 from jst_api.knowledge.loaders import LoadedDocument, TextLoader, UrlLoader, content_hash
 
 log = get_logger(__name__)
+
+#: Source status, and chunk ``embedding_model``, while vectors are still owed.
+PENDING_EMBEDDING = "pending_embedding"
 
 
 @dataclass
@@ -41,6 +45,9 @@ class IngestionResult:
     skipped: bool
     review_task_created: bool = False
     injection_flags: list[str] | None = None
+    embedding_pending: bool = False
+    """True when the chunks were stored without vectors because embedding failed.
+    They are keyword-searchable now and get vectors when ``embed_pending`` next runs."""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -51,6 +58,7 @@ class IngestionResult:
             "skipped": self.skipped,
             "review_task_created": self.review_task_created,
             "injection_flags": self.injection_flags or [],
+            "embedding_pending": self.embedding_pending,
         }
 
 
@@ -232,7 +240,22 @@ class IngestionService:
                 skipped=False,
             )
 
-        vectors = await self._embeddings.aembed_documents([c.page_content for c in chunks])
+        # An embedding outage must not lose the document. The provider has already
+        # retried; if it still fails, the chunks are stored without vectors — the
+        # keyword retriever finds them at once, the dense retriever skips them — and
+        # ``embed_pending`` fills the vectors in later.
+        vectors: list[list[float] | None]
+        embedding_pending = False
+        try:
+            vectors = list(
+                await self._embeddings.aembed_documents([c.page_content for c in chunks])
+            )
+        except ProviderError as exc:
+            log.warning("ingest.embedding_deferred", source_id=source.id, error=str(exc)[:300])
+            vectors = [None] * len(chunks)
+            embedding_pending = True
+            if source.status != "changed":
+                source.status = PENDING_EMBEDDING
 
         # Replace this source's chunks atomically inside the caller's transaction.
         await self._session.execute(
@@ -256,7 +279,11 @@ class IngestionService:
                     trust_level=str(md.get("trust_level", trust_level.value)),
                     official_source=bool(md.get("official_source", official_source)),
                     verified_at=verified_at or source.verified_at,
-                    embedding_model=getattr(self._embeddings, "model", "unknown"),
+                    embedding_model=(
+                        getattr(self._embeddings, "model", "unknown")
+                        if vector is not None
+                        else PENDING_EMBEDDING
+                    ),
                     embedding=vector,
                     token_estimate=max(1, len(chunk.page_content) // 4),
                     is_demo=is_demo,
@@ -272,7 +299,60 @@ class IngestionService:
             skipped=False,
             review_task_created=review_created,
             injection_flags=loaded.injection_flags,
+            embedding_pending=embedding_pending,
         )
+
+    async def embed_pending(self, *, limit: int = 256) -> dict[str, int]:
+        """Give vectors to chunks stored without them. Safe to run repeatedly.
+
+        Raises ``ProviderError`` if the embedding provider is still down; the
+        chunks stay pending and the next run tries again.
+        """
+        chunks = list(
+            (
+                await self._session.scalars(
+                    select(EvidenceChunk)
+                    .where(EvidenceChunk.embedding.is_(None))
+                    .order_by(EvidenceChunk.created_at)
+                    .limit(limit)
+                )
+            ).all()
+        )
+        if not chunks:
+            return {"chunks_embedded": 0, "sources_completed": 0, "still_pending": 0}
+
+        vectors = await self._embeddings.aembed_documents([c.content for c in chunks])
+        model = getattr(self._embeddings, "model", "unknown")
+        for chunk, vector in zip(chunks, vectors, strict=True):
+            chunk.embedding = vector
+            chunk.embedding_model = model
+        await self._session.flush()
+
+        completed = 0
+        for source_id in {c.source_id for c in chunks}:
+            remaining = await self._session.scalar(
+                select(func.count())
+                .select_from(EvidenceChunk)
+                .where(EvidenceChunk.source_id == source_id, EvidenceChunk.embedding.is_(None))
+            )
+            source = await self._session.get(Source, source_id)
+            if not remaining and source is not None and source.status == PENDING_EMBEDDING:
+                source.status = "active"
+                completed += 1
+        still_pending = await self._session.scalar(
+            select(func.count()).select_from(EvidenceChunk).where(EvidenceChunk.embedding.is_(None))
+        )
+        log.info(
+            "ingest.embeddings_filled",
+            chunks=len(chunks),
+            sources_completed=completed,
+            still_pending=int(still_pending or 0),
+        )
+        return {
+            "chunks_embedded": len(chunks),
+            "sources_completed": completed,
+            "still_pending": int(still_pending or 0),
+        }
 
     async def _find_source(self, *, url: str | None, title: str) -> Source | None:
         if url:

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -16,6 +18,8 @@ from jst_api.core.config import Settings, get_settings
 from jst_api.core.ids import new_id
 from jst_api.core.logging import configure_logging, get_logger
 from jst_api.db.base import build_engine, get_sessionmaker, reset_engine
+from jst_api.knowledge.embeddings import ProviderEmbeddings
+from jst_api.knowledge.reembed import reembed_forever
 from jst_api.observability.metrics import METRICS
 from jst_api.observability.tracing import init_tracing, instrument_app
 from jst_api.providers.registry import build_registry
@@ -66,6 +70,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             log.warning("startup.redis_unavailable", error=str(exc))
     app.state.rate_limiter = RateLimiter(limit=settings.rate_limit_per_minute, redis=redis_client)
 
+    reembed_task: asyncio.Task[None] | None = None
+    if settings.embedding_retry_interval_seconds > 0:
+        reembed_task = asyncio.create_task(
+            reembed_forever(session_factory, ProviderEmbeddings(registry.embeddings), settings),
+            name="reembed",
+        )
+
     log.info(
         "startup.complete",
         environment=settings.environment,
@@ -73,6 +84,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         providers={k: v["provider"] for k, v in registry.describe().items()},
     )
     yield
+    if reembed_task is not None:
+        reembed_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await reembed_task
     log.info("shutdown")
 
 
