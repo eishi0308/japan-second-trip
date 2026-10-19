@@ -3,8 +3,9 @@
  *
  * Hand-maintained rather than generated, so the frontend can be read on its own
  * — but every field name here exists in `backend/src/jst_api/domain/results.py`
- * and `api/schemas.py`, and the contract test in `tests/contract.test.ts`
- * fails if the API drifts.
+ * and `api/schemas.py`. Nothing checks the two automatically: update this file
+ * when the API changes. The end-to-end tests run against the real API, so they
+ * catch most drift, but not a field that no screen reads.
  */
 
 export type FitLabel = "strong" | "good" | "marginal" | "not_recommended";
