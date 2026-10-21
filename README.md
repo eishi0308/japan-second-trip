@@ -412,7 +412,7 @@ them live in one place rather than being restated on each side.
 | [evals.md](docs/evals.md) | methodology and results |
 | [evals/retrieval-comparison.md](docs/evals/retrieval-comparison.md) | the four-way comparison, generated |
 | [security.md](docs/security.md) | threat model and defences |
-| [data-model.md](docs/data-model.md) | 22 tables and the structured/RAG split |
+| [data-model.md](docs/data-model.md) | 23 tables and the structured/RAG split |
 | [mcp.md](docs/mcp.md) | the gateway and its three consumers |
 | [deployment.md](docs/deployment.md) | local, Docker, AWS |
 | [product-decisions.md](docs/product-decisions.md) | who it is for and what was left out |

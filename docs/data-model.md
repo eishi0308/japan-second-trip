@@ -1,6 +1,6 @@
 # Data model
 
-22 tables in one PostgreSQL database. The organising decision is the split
+23 tables in one PostgreSQL database. The organising decision is the split
 between **structured facts** and **retrievable prose** — see
 `docs/adr/0005-hybrid-search.md`.
 
@@ -50,6 +50,15 @@ Indexes on `evidence_chunks`:
 A traveller's explicit rejection outranks a later automated shortlisting — a
 guard in `TripService._upsert_candidate`, so the system cannot quietly
 re-recommend something they ruled out.
+
+## Billing
+
+| Table | Holds |
+| --- | --- |
+| `purchases` | plan, amount in AUD, status (`pending`/`paid`/`cancelled`), provider (`demo` or Stripe), demo flag, Stripe checkout session id, the analysis or trip it was bought for, `paid_at` |
+
+A purchase is only ever created by the traveller pressing a button; nothing in
+the agent layer can create or confirm one.
 
 ## Runs — observability and HITL
 
