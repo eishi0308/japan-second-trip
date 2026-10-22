@@ -417,6 +417,7 @@ them live in one place rather than being restated on each side.
 | [deployment.md](docs/deployment.md) | local, Docker, AWS |
 | [product-decisions.md](docs/product-decisions.md) | who it is for and what was left out |
 | [adr/](docs/adr/) | 13 architecture decision records |
+| [implementation-report.md](docs/implementation-report.md) | what was built, measured results, and what is left |
 
 ## Limitations
 
