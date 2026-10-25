@@ -19,6 +19,13 @@ transport", and the permission differences end up wherever someone last edited.
 That asymmetry is also the capability half of the injection defence: a persuaded
 model cannot reach a write tool the consumer does not hold.
 
+Who decides which tools are called differs too. The two traveller-facing graphs
+call them in an order fixed by the workflow. The admin assistant's model chooses
+its own, but only from the read-only tools on its allowlist — so of its 7 tools,
+`create_human_review_request` is never selectable — and each choice is validated
+against the tool's input schema before it is dispatched
+([ADR 0013](adr/0013-model-selected-tools.md)).
+
 ## Architectural boundary
 
 The package owns the **interface** — tool list, JSON schemas, argument
