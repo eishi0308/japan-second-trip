@@ -232,7 +232,7 @@ Built **before** the AI logic was called finished, and they changed it.
 
 ```
 retrieval    20/20   hybrid: recall@5 0.797  MRR 0.887  NDCG@8 0.813
-tool         23/23   p50 20ms
+tool         29/29   p50 18ms   selection 6/6, unnecessary calls 0%
 security     19/19
 rag           6/6    relevance 1.00  citations 1.00  grounded 1.00  unsupported 0
 agent         8/8    p50 381ms  p95 570ms
@@ -392,7 +392,7 @@ japan-second-trip/
 ├── packages/               code both apps import
 │   ├── shared_schemas/     the MCP tool contracts, one source of truth
 │   └── travel_mcp/         the MCP server and session
-├── docs/                   architecture, security, evals, 12 ADRs
+├── docs/                   architecture, security, evals, 13 ADRs
 ├── evals/                  datasets, runners and reports
 ├── infra/                  Terraform for the AWS deployment
 ├── scripts/                dev.sh, check.sh, seed.py, deploy.sh
