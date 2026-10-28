@@ -172,9 +172,11 @@ It has three genuine consumers with **different permissions**:
 | Admin verification assistant | 7 | no — it acts for a reviewer, not a traveller |
 
 That asymmetry is the point. It is also the capability half of the
-prompt-injection defence: the model never dispatches a tool, a graph node does,
-from an allowlist. A successful injection cannot reach a write tool because the
-consumer does not hold the capability.
+prompt-injection defence: the model never dispatches a tool; code does, from an
+allowlist. Where the admin assistant's model chooses which tools to call, each
+choice is validated against the allowlist and the tool's schema before anything
+runs. A successful injection cannot reach a write tool because the consumer does
+not hold the capability.
 
 What does *not* go through MCP: ordinary internal CRUD. Routing a database read
 through JSON-RPC would be architecture theatre. MCP carries reusable AI-facing
