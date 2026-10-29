@@ -72,9 +72,12 @@ control. It is here because it helps; it is not what the design relies on.
 
 ### Layer 4 — Capability control (the one that actually holds)
 
-The model never dispatches a tool. A graph node does, from a per-consumer
-allowlist, with typed arguments validated at the MCP protocol layer before the
-backend is reached.
+The model never dispatches a tool. Code does, from a per-consumer allowlist,
+with typed arguments validated at the MCP protocol layer before the backend is
+reached. The admin assistant's model may *choose* its tools, but only from its
+read-only ones, and each choice is validated before it runs; a choice of anything
+else is recorded as rejected and never dispatched
+(`agents/common/selection.py`, tested by `test_an_off_menu_selection_is_rejected_not_executed`).
 
 | Consumer | Tools | May write trip state |
 | --- | --- | --- |
