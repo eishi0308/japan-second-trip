@@ -349,9 +349,10 @@ Four layers, because a prompt instruction is a mitigation and not a control:
    quarantine on a single match.
 3. **Structural separation** — retrieved content only appears inside an explicit
    untrusted-data fence.
-4. **Capability control** — the model never dispatches a tool. A graph node does,
-   from a per-consumer allowlist. A successful injection during a RouteCheck
-   cannot reach a write tool, because that consumer does not hold it.
+4. **Capability control** — the model never dispatches a tool. Code does, from a
+   per-consumer allowlist; where the admin assistant's model chooses its tools,
+   each choice is validated before it runs. A successful injection during a
+   RouteCheck cannot reach a write tool, because that consumer does not hold it.
 
 The seeded corpus contains a **live injection canary** so the defence is
 continuously exercised rather than assumed.
