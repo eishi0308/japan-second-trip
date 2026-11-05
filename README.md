@@ -5,7 +5,7 @@
 Verified regional travel intelligence for people who have already done Tokyo,
 Kyoto and Osaka.
 
-![Landing page with the two paths: Where should I go next, and Check my route](docs/images/landing.png)
+![Landing page with the two paths, "Where should I go next?" and "Check my route"](docs/images/landing.png)
 
 ---
 
