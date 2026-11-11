@@ -3,7 +3,7 @@
 **Choose the right next Japan — and make sure the trip actually works.**
 
 Verified regional travel intelligence for people who have already been to Tokyo,
-Kyoto and Osaka.
+Kyoto, and Osaka.
 
 ![Landing page with the two paths, "Where should I go next?" and "Check my route"](docs/images/landing.png)
 
