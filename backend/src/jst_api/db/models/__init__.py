@@ -7,6 +7,7 @@ from jst_api.db.models.catalog import (
     Region,
     TransportConstraint,
 )
+from jst_api.db.models.destinations import Destination, FragileLink, Hub, HubLink
 from jst_api.db.models.evals import EvalCase, EvalResult, EvalRun
 from jst_api.db.models.knowledge import (
     EMBEDDING_DIM,
@@ -37,11 +38,15 @@ __all__ = [
     "Analysis",
     "BookingConstraint",
     "CandidateRegion",
+    "Destination",
     "EvalCase",
     "EvalResult",
     "EvalRun",
     "EvidenceChunk",
     "Feedback",
+    "FragileLink",
+    "Hub",
+    "HubLink",
     "HumanReviewTask",
     "Place",
     "Purchase",

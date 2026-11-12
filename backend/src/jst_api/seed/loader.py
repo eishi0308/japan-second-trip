@@ -30,6 +30,7 @@ from jst_api.db.models import (
 from jst_api.domain.enums import EvidenceTopic, ReviewReason, SourceType, TrustLevel
 from jst_api.knowledge.ingest import IngestionService
 from jst_api.seed.booking import BOOKING_CONSTRAINTS
+from jst_api.seed.destination_loader import seed_destination_catalogue
 from jst_api.seed.evidence import DOCUMENTS, KNOWN_CONFLICTS
 from jst_api.seed.places import PLACES
 from jst_api.seed.regions import REGIONS
@@ -39,7 +40,8 @@ log = get_logger(__name__)
 
 
 async def seed_catalogue(session: AsyncSession) -> dict[str, int]:
-    """Regions, places, transport and booking constraints (structured facts)."""
+    """Regions, places, transport and booking constraints, then the nationwide
+    destination catalogue (hubs, backbone, destinations, fragile links)."""
     counts = {"regions": 0, "places": 0, "transport": 0, "booking": 0}
 
     existing_regions = set((await session.scalars(select(Region.code))).all())
@@ -117,6 +119,7 @@ async def seed_catalogue(session: AsyncSession) -> dict[str, int]:
         counts["booking"] += 1
 
     await session.flush()
+    counts.update(await seed_destination_catalogue(session))
     log.info("seed.catalogue", **counts)
     return counts
 

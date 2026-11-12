@@ -1,6 +1,6 @@
 # Data model
 
-23 tables in one PostgreSQL database. The organising decision is the split
+27 tables in one PostgreSQL database. The organising decision is the split
 between **structured facts** and **retrievable prose** — see
 `docs/adr/0005-hybrid-search.md`.
 
@@ -18,6 +18,28 @@ depend on them being exact.
 
 `last_departure_local` + `final_leg_minutes` are what let rule `R06` work out
 whether a traveller makes the last bus of the day.
+
+## Destination catalogue — nationwide, structured
+
+Added for v2 ([PRODUCT_AMENDMENTS.md](PRODUCT_AMENDMENTS.md) §6). Where Next
+picks destination *combinations* from here. Every row is DEMO data with a DEMO
+source and a date: see `seed/destinations.py`, `seed/hubs.py`, `seed/fragile.py`.
+
+| Table | Holds | Why structured |
+| --- | --- | --- |
+| `hubs` | 31 major cities: coordinates, airports, whether it can be an arrival/departure city | the nodes of the backbone |
+| `hub_links` | 148 directed hub-to-hub links (74 pairs): mode, door-to-door minutes, transfers | `domain/backbone.py` runs a shortest-path search over them; the answer must be reproducible |
+| `destinations` | 149 places beyond Tokyo/Kyoto/Osaka: hub + minutes from it, car need (`none`/`helpful`/`required`), 12-month season fit (0-3), themes, popularity tier (`classic`/`middle`/`hidden`), stay length, `has_fragile_links`, link to `places` | every one is a filter or a rubric input |
+| `fragile_links` | 38 records for 30 fragile destinations: kind (last connection, shuttle, seasonal/weekly closure, booking, weather, access disruption), severity, last departure, closed months/weekdays, lead time, status, `conflicting_values`, source, `verified_at`, TTL | the facts that break a day must be compared exactly, and dated |
+
+What the traveller is told about a fragile fact comes from
+`domain/fact_state.py`: **verified** (with its date), **stale** (past its TTL),
+**unverified** ("No verified info yet"), or **being checked** (sources conflict;
+no value is asserted). The seed covers all four. The Ginzan Onsen last bus is
+the conflicting case and matches the open review task in `seed/evidence.py`.
+
+The older `regions`, `places` and `transport_constraints` tables stay:
+RouteCheck still resolves itinerary stops against `places`.
 
 ## Knowledge — the RAG side
 

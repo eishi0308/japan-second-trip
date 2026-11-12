@@ -176,3 +176,59 @@ class EvidenceTopic(StrEnum):
     ACCESSIBILITY = "accessibility"
     GENERAL = "general"
     COST = "cost"
+
+
+# ---- Destination catalogue (PRODUCT_AMENDMENTS.md §6) ---------------------
+
+
+class Area(StrEnum):
+    """Broad area of Japan. Used for diversity and "Not for this trip" grouping."""
+
+    HOKKAIDO = "hokkaido"
+    TOHOKU = "tohoku"
+    KANTO = "kanto"
+    CHUBU = "chubu"
+    HOKURIKU = "hokuriku"
+    KANSAI = "kansai"
+    CHUGOKU = "chugoku"
+    SHIKOKU = "shikoku"
+    KYUSHU = "kyushu"
+    OKINAWA = "okinawa"
+
+
+class CarNeed(StrEnum):
+    NONE = "none"
+    """Reachable and enjoyable on public transport alone."""
+    HELPFUL = "helpful"
+    """Works without a car, but a car opens up much more."""
+    REQUIRED = "required"
+    """Not realistic without a car (or a tour)."""
+
+
+class PopularityTier(StrEnum):
+    CLASSIC = "classic"
+    MIDDLE = "middle"
+    HIDDEN = "hidden"
+
+
+class FragileKind(StrEnum):
+    """What can break a stay at a fragile destination."""
+
+    LAST_CONNECTION = "last_connection"
+    """Last bus, ferry or train of the day."""
+    RYOKAN_SHUTTLE = "ryokan_shuttle"
+    SEASONAL_CLOSURE = "seasonal_closure"
+    LOW_FREQUENCY = "low_frequency"
+    BOOKING_DIFFICULTY = "booking_difficulty"
+    WEATHER_CANCELLATION = "weather_cancellation"
+    WEEKLY_CLOSURE = "weekly_closure"
+    ACCESS_DISRUPTION = "access_disruption"
+    """Damage, roadworks or recovery work that changes access."""
+
+
+class FactStatus(StrEnum):
+    """Verification state of a critical fact. Staleness is derived from dates."""
+
+    VERIFIED = "verified"
+    UNVERIFIED = "unverified"
+    CONFLICTING = "conflicting"
