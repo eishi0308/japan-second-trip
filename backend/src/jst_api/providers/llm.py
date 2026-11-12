@@ -508,8 +508,16 @@ def _demo_final_explanation(data: dict[str, Any], schema: type[BaseModel]) -> Ba
     return schema.model_validate(deterministic_final_explanation(data).model_dump())
 
 
+def _demo_past_trip(data: dict[str, Any], schema: type[BaseModel]) -> BaseModel:
+    from jst_api.planner.preferences import keyword_past_trip
+
+    best = " ".join(str(data.get(k) or "") for k in ("best", "wish")).strip()
+    return schema.model_validate(keyword_past_trip(best, data.get("tired")).model_dump())
+
+
 _DEMO_HANDLERS = {
     "ExtractedItinerary": _demo_extracted_itinerary,
+    "PastTripPreferences": _demo_past_trip,
     "ComparisonOutput": _demo_comparison,
     "CritiqueOutput": _demo_critique,
     "GroundingVerdict": _demo_grounding,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -30,7 +31,13 @@ def install_error_handlers(app: FastAPI) -> None:
                 "error": {
                     "code": "validation_failed",
                     "message": "Request body failed validation",
-                    "details": {"errors": exc.errors()[:10]},
+                    # A validator's ValueError sits in ``ctx``; it is not JSON, so
+                    # render it as text rather than turning a 422 into a 500.
+                    "details": {
+                        "errors": jsonable_encoder(
+                            exc.errors()[:10], custom_encoder={Exception: str}
+                        )
+                    },
                 }
             },
         )

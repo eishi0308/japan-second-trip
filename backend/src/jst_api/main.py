@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from jst_api import __version__
 from jst_api.api.errors import install_error_handlers
-from jst_api.api.v1 import admin, analyses, billing, evidence, feedback, system, trips
+from jst_api.api.v1 import admin, analyses, billing, evidence, feedback, plans, system, trips
 from jst_api.core.config import Settings, get_settings
 from jst_api.core.ids import new_id
 from jst_api.core.logging import configure_logging, get_logger
@@ -134,6 +134,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(system.router)
     app.include_router(analyses.router, prefix=settings.api_prefix)
     app.include_router(trips.router, prefix=settings.api_prefix)
+    app.include_router(plans.router, prefix=settings.api_prefix)
     app.include_router(evidence.router, prefix=settings.api_prefix)
     app.include_router(feedback.router, prefix=settings.api_prefix)
     app.include_router(billing.router, prefix=settings.api_prefix)

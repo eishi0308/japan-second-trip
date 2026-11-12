@@ -332,7 +332,7 @@ real MCP session; only outbound HTTP is faked. CI runs the whole backend suite
 against **both** SQLite and PostgreSQL, because the offline path and the
 production path must both keep working.
 
-Both legs have now actually been run: 304 pass on PostgreSQL, 301 on SQLite
+Both legs have now actually been run: 343 pass on PostgreSQL, 340 on SQLite
 (3 durable-checkpoint tests need a real PostgreSQL and skip). That is worth
 stating precisely, because for most of this project's life the PostgreSQL leg
 had never executed — a session-scoped asyncpg engine against pytest-asyncio's
