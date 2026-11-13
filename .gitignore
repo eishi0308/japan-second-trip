@@ -13,6 +13,7 @@ htmlcov/
 # Node
 node_modules/
 .next/
+.next-build/
 out/
 *.tsbuildinfo
 frontend/test-results/

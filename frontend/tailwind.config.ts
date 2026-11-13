@@ -1,8 +1,8 @@
 import type { Config } from "tailwindcss";
 
 /**
- * The palette is deliberately narrow: an ink-on-paper base with a single
- * restrained accent. A verification product loses credibility the moment it
+ * The palette is deliberately narrow (PRODUCT_AMENDMENTS.md §8): white, ink and
+ * indigo, with green, amber and red kept for status alone. A verification product loses credibility the moment it
  * looks like a toy, so colour is used to mean something (severity, freshness)
  * rather than to decorate.
  */
@@ -24,24 +24,26 @@ const config: Config = {
           900: "#1c1c1a",
           950: "#121211",
         },
-        paper: "#fbfaf8",
+        paper: "#ffffff",
+        // Indigo: the one accent. Used for actions and focus, never for status.
         accent: {
-          50: "#f2f6f4",
-          100: "#dfeae5",
-          200: "#c1d6cd",
-          300: "#98baad",
-          400: "#6d9a89",
-          500: "#4f7f6d",
-          600: "#3c6656",
-          700: "#325347",
-          800: "#2b433b",
-          900: "#253932",
+          50: "#f1f3fa",
+          100: "#e2e6f4",
+          200: "#c5cce8",
+          300: "#9ea9d6",
+          400: "#7180bf",
+          500: "#4f5fa6",
+          600: "#3d4b8c",
+          700: "#323d72",
+          800: "#29325c",
+          900: "#1f2647",
         },
+        // Status only, always paired with an icon and words (WCAG AA on white).
         signal: {
-          critical: "#a13d33",
-          warning: "#9a6b23",
-          good: "#3c6656",
-          info: "#3f5b73",
+          critical: "#b42318",
+          warning: "#8a5a00",
+          good: "#1f7a4d",
+          info: "#3d4b8c",
         },
       },
       fontFamily: {

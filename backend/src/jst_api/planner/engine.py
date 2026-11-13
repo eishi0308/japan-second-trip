@@ -417,6 +417,8 @@ class Planner:
                 summary=p.summary,
                 pinned=p.slug in pins,
                 is_demo=p.is_demo,
+                lat=p.lat,
+                lon=p.lon,
             )
             for p, n in zip(combo.stops, combo.nights, strict=True)
         ]

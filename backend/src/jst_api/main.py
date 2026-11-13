@@ -21,6 +21,7 @@ from jst_api.api.v1 import (
     evidence,
     feedback,
     plans,
+    saved_trips,
     system,
     trips,
 )
@@ -146,6 +147,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(trips.router, prefix=settings.api_prefix)
     app.include_router(plans.router, prefix=settings.api_prefix)
     app.include_router(checks.router, prefix=settings.api_prefix)
+    app.include_router(saved_trips.router, prefix=settings.api_prefix)
     app.include_router(evidence.router, prefix=settings.api_prefix)
     app.include_router(feedback.router, prefix=settings.api_prefix)
     app.include_router(billing.router, prefix=settings.api_prefix)

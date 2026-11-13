@@ -5,16 +5,16 @@ import { DemoBanner } from "@/components/DemoBanner";
 
 export const metadata: Metadata = {
   title: {
-    default: "Japan Second Trip — verified regional travel intelligence",
+    default: "Japan Second Trip: three checked trips beyond Tokyo, Kyoto and Osaka",
     template: "%s · Japan Second Trip",
   },
   description:
-    "Choose the right next Japan — and make sure the trip actually works. Region decisions and itinerary checks for repeat visitors, grounded in verified evidence.",
+    "Three realistic next-Japan trips beyond Tokyo, Kyoto and Osaka, matched to your conditions and checked day by day.",
   robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fbfaf8",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
 };
@@ -50,15 +50,15 @@ function SiteHeader() {
         <Link href="/" className="group flex items-baseline gap-2.5">
           <span className="font-serif text-[1.12rem] tracking-tight text-ink-900">Japan Second Trip</span>
           <span className="hidden text-[0.7rem] uppercase tracking-[0.16em] text-ink-400 sm:inline">
-            regional intelligence
+            where next, checked
           </span>
         </Link>
         <nav aria-label="Main" className="flex items-center gap-1 text-sm">
-          <Link href="/where-next" className="btn-ghost">
+          <Link href="/plan" className="btn-ghost">
             Where next
           </Link>
-          <Link href="/route-check" className="btn-ghost">
-            RouteCheck
+          <Link href="/check" className="btn-ghost">
+            Check my route
           </Link>
           <Link href="/admin" className="btn-ghost hidden sm:inline-flex">
             Admin
@@ -78,11 +78,11 @@ function SiteFooter() {
           with the operator before you pay for anything.
         </p>
         <div className="flex gap-4">
-          <Link href="/where-next" className="hover:text-ink-800">
+          <Link href="/plan" className="hover:text-ink-800">
             Where next
           </Link>
-          <Link href="/route-check" className="hover:text-ink-800">
-            RouteCheck
+          <Link href="/check" className="hover:text-ink-800">
+            Check my route
           </Link>
         </div>
       </div>

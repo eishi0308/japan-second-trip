@@ -76,6 +76,8 @@ class Place:
     is_demo: bool = True
     fragile: tuple[FragileNote, ...] = ()
     source_id: str | None = None
+    lat: float | None = None
+    lon: float | None = None
 
     @property
     def access(self) -> DestinationAccess:
@@ -95,6 +97,8 @@ class HubInfo:
     name: str
     area: str
     is_gateway: bool
+    lat: float | None = None
+    lon: float | None = None
 
 
 @dataclass

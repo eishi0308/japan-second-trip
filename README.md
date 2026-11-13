@@ -202,14 +202,23 @@ providers and seeded evidence, and every affected result says so — a banner, a
 
 ### Demo flow
 
-1. `/where-next` → 12 nights, 3 regional, Tokyo in/out, food + onsen + nature,
-   public transport only → Kyushu is ruled out with a stated reason; open the
-   rubric on any card to see the arithmetic.
-2. `/route-check` → "Use the example" → the over-stuffed Tohoku itinerary is
-   criticised, with a costed alternative and what it costs you.
-3. Any citation → expand for the passage, its type and its last-verified date.
-4. `/admin` → the seeded source conflict about the last bus into Ginzan Onsen is
-   waiting for a human. Resolve it and the blocked analysis re-runs.
+1. `/plan`: January, 4 nights, Tokyo in and out, no car, with onsen, snow and
+   food. You get three trips: Classic, Unexpected and Slow-paced. Each card
+   shows its fit, travel load, car need, season, "What's hard", and a dated
+   verification line. Open "Not for this trip": Kyushu is ruled out, with "If
+   you can fly out of Fukuoka, Kyushu becomes a possible option."
+2. Compare: the three trips side by side, with what-if toggles (drive, +1
+   night, fly out of Osaka) that recompute straight away.
+3. Open an option: a map, a day-by-day timeline of moving and staying time,
+   and issues with dated evidence and two fixes each. Pin a stop and swap
+   another, and the check re-runs on every change. Then save the trip and copy
+   the read-only share link.
+4. `/plan` with everything "Not decided yet", "Loved Nishiki Market food
+   walks, tired of crowds", and two scene cards: a season choice appears, with
+   "Assumed: Tokyo in/out".
+5. `/check` → "Use an example" → confirm the parsed table, pin Ginzan Onsen,
+   pick January. The Ginzan last bus is "Being checked", and no fix removes
+   Ginzan.
 
 ### Environment
 
@@ -322,7 +331,7 @@ make sweep        # retrieval hyper-parameter sweep
 
 ```bash
 make test         # 276 backend tests
-make test-web     # 52 frontend tests: 24 component, 28 integration against a mocked API
+make test-web     # 26 frontend tests: 21 component, 5 integration against a mocked API
 make e2e          # 20 end-to-end tests × 2 viewports
 make lint         # ruff, mypy, tsc
 ```
@@ -332,7 +341,7 @@ real MCP session; only outbound HTTP is faked. CI runs the whole backend suite
 against **both** SQLite and PostgreSQL, because the offline path and the
 production path must both keep working.
 
-Both legs have now actually been run: 370 pass on PostgreSQL, 367 on SQLite
+Both legs have now actually been run: 377 pass on PostgreSQL, 374 on SQLite
 (3 durable-checkpoint tests need a real PostgreSQL and skip). That is worth
 stating precisely, because for most of this project's life the PostgreSQL leg
 had never executed — a session-scoped asyncpg engine against pytest-asyncio's
@@ -386,7 +395,7 @@ japan-second-trip/
 │   │   ├── security/       auth, rate limiting, injection defence
 │   │   └── observability/  tracing, cost and latency
 │   └── tests/              unit · integration · agents · security
-├── frontend/               Next.js app — the two flows and the admin console
+├── frontend/               Next.js app: Where Next, RouteCheck, saved trips, admin
 │   ├── src/app/            routes
 │   ├── src/components/
 │   └── tests/              unit · integration (vitest) · e2e (playwright)
@@ -444,12 +453,9 @@ credible.
   returns calibrated confidence.
 - **Terraform has not been applied** against a live AWS account — it validates
   and plans, but no infrastructure has ever been created from it.
-- **Buying unlocks nothing yet.** Checkout works end to end — a demo checkout
-  with no card when Stripe is not configured, Stripe Checkout when it is — and
-  the purchase is recorded against the analysis. But every result is shown in
-  full for free; what a paid plan adds is a product decision still to be made.
-  Stripe itself has only been exercised through its mocked client in tests, never
-  against a real test-mode key.
+- **No payments in v1.** "See full report" records the click and nothing
+  else; it is a demand test. The v1 Stripe checkout endpoints still exist in
+  the backend, and pricing stays configured, but the UI no longer uses them.
 - **Retrieval numbers flatter lexical search.** The corpus is small and
   hand-authored, so its vocabulary overlaps the golden queries more than a
   scraped corpus would. Re-measure after switching to a real embedding provider.
@@ -457,8 +463,8 @@ credible.
 ## Roadmap
 
 **Next** — a real transport data source; expand the golden set well beyond 20
-queries so the comparison is not decided by noise; decide what a paid plan
-unlocks and run the checkout against a Stripe test-mode key.
+queries so the comparison is not decided by noise; decide, from the
+"See full report" clicks, whether a paid report is worth building.
 
 **Then** — more regions, added one at a time with verified evidence; a learned
 reranker over retrieval, where relevance labels can genuinely come from

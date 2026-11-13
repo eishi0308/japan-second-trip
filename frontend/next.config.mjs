@@ -13,6 +13,8 @@ const nextConfig = {
   // moved server.js to standalone/<dir>/server.js inside the container, and
   // the container then exited immediately with "cannot find module".
   outputFileTracingRoot: import.meta.dirname,
+  // A separate build folder lets `next build` run while `next dev` uses .next.
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
   poweredByHeader: false,
   async headers() {
     return [

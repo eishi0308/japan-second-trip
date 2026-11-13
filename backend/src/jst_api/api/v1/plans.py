@@ -14,7 +14,8 @@ from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import select
 
 from jst_api.api.deps import AnalysisRateLimitDep, RegistryDep, SessionDep
-from jst_api.db.models import Hub
+from jst_api.core.errors import NotFoundError
+from jst_api.db.models import Hub, PlanRecord
 from jst_api.domain.enums import Interest, Pace
 from jst_api.planner.model import MAX_INTERESTS, ReactionKind, Transport
 from jst_api.planner.preferences import SCENE_CARD_BY_SLUG, SCENE_CARDS
@@ -52,6 +53,7 @@ class PlanRequest(BaseModel):
     past_trip_tired: str | None = Field(default=None, max_length=500)
     free_text: str | None = Field(default=None, max_length=500)
     reactions: list[ReactionIn] = Field(default_factory=list, max_length=12)
+    save: bool = True
 
     @model_validator(mode="after")
     def _check(self) -> PlanRequest:
@@ -70,6 +72,8 @@ class PreferencesOut(BaseModel):
 
 
 class PlanResponse(BaseModel):
+    plan_id: str | None = None
+    request: PlanRequest
     plan: PlanResult
     preferences: PreferencesOut
     demo_mode: bool
@@ -110,12 +114,8 @@ async def list_cities(session: SessionDep) -> list[HubOut]:
     ]
 
 
-@router.post("", response_model=PlanResponse)
-async def create_plan(
-    payload: PlanRequest,
-    session: SessionDep,
-    registry: RegistryDep,
-    _rate: AnalysisRateLimitDep,
+async def _respond(
+    payload: PlanRequest, session: SessionDep, registry: RegistryDep, plan_id: str | None
 ) -> PlanResponse:
     data = PlanInput(
         month=payload.month,
@@ -139,6 +139,8 @@ async def create_plan(
     plan, inferred, latency = await build_plan(session, registry, data)
     demo_llm: Any = registry.demo_flags.get("llm", True)
     return PlanResponse(
+        plan_id=plan_id,
+        request=payload,
         plan=plan,
         preferences=PreferencesOut(
             interests=plan.interests,
@@ -148,3 +150,32 @@ async def create_plan(
         demo_mode=bool(plan.is_demo or demo_llm),
         latency_ms=int(latency),
     )
+
+
+@router.post("", response_model=PlanResponse)
+async def create_plan(
+    payload: PlanRequest,
+    session: SessionDep,
+    registry: RegistryDep,
+    _rate: AnalysisRateLimitDep,
+) -> PlanResponse:
+    """Plan from conditions. ``save`` stores the conditions so ``/plan/[id]`` can re-open it;
+    what-if toggles on Compare pass ``save: false`` and just recompute."""
+    plan_id = None
+    if payload.save:
+        record = PlanRecord(request=payload.model_dump(mode="json"))
+        session.add(record)
+        await session.flush()
+        plan_id = record.id
+    return await _respond(payload, session, registry, plan_id)
+
+
+@router.get("/{plan_id}", response_model=PlanResponse)
+async def get_plan(plan_id: str, session: SessionDep, registry: RegistryDep) -> PlanResponse:
+    """Re-run a saved plan. Deterministic, so the same conditions give the same plan
+    (with any facts a reviewer has since resolved)."""
+    record = await session.get(PlanRecord, plan_id)
+    if record is None:
+        raise NotFoundError("That plan does not exist.", details={"plan_id": plan_id})
+    payload = PlanRequest.model_validate(record.request)
+    return await _respond(payload, session, registry, plan_id)

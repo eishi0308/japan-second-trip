@@ -16,6 +16,7 @@ from jst_api.db.models.knowledge import (
     SourceDocument,
     VerificationRecord,
 )
+from jst_api.db.models.plans import DemandEvent, PlanRecord, SavedTrip
 from jst_api.db.models.runs import (
     AgentRun,
     Analysis,
@@ -38,6 +39,7 @@ __all__ = [
     "Analysis",
     "BookingConstraint",
     "CandidateRegion",
+    "DemandEvent",
     "Destination",
     "EvalCase",
     "EvalResult",
@@ -49,8 +51,10 @@ __all__ = [
     "HubLink",
     "HumanReviewTask",
     "Place",
+    "PlanRecord",
     "Purchase",
     "Region",
+    "SavedTrip",
     "Source",
     "SourceDocument",
     "StoredRoute",

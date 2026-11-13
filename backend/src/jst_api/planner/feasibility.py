@@ -229,6 +229,8 @@ def _city_place(hub: HubInfo) -> Place:
         typical_nights=1,
         summary="",
         verified_at=None,
+        lat=hub.lat,
+        lon=hub.lon,
     )
 
 
@@ -892,6 +894,8 @@ class Checker:
                 nights=s.spec.nights,
                 pinned=s.spec.pinned,
                 area=s.place.area if s.place else None,
+                lat=s.place.lat if s.place else None,
+                lon=s.place.lon if s.place else None,
             )
             for s in stops
         ]

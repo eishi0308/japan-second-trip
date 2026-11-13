@@ -22,7 +22,7 @@ async def load_planner_catalogue(
     now = now or datetime.now(UTC)
     backbone = await load_backbone(session)
     hubs = {
-        h.slug: HubInfo(h.slug, h.name, h.area, h.is_international_gateway)
+        h.slug: HubInfo(h.slug, h.name, h.area, h.is_international_gateway, h.lat, h.lon)
         for h in (await session.scalars(select(Hub))).all()
     }
     notes: dict[str, list[FragileNote]] = {}
@@ -68,6 +68,8 @@ async def load_planner_catalogue(
             is_demo=d.is_demo,
             fragile=tuple(notes.get(d.slug, ())),
             source_id=d.source_id,
+            lat=d.lat,
+            lon=d.lon,
         )
         for d in (await session.scalars(select(Destination).order_by(Destination.slug))).all()
     }

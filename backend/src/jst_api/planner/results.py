@@ -42,6 +42,8 @@ class StopOut(BaseModel):
     summary: str
     pinned: bool = False
     is_demo: bool = True
+    lat: float | None = None
+    lon: float | None = None
 
 
 class FitLine(BaseModel):
@@ -185,6 +187,8 @@ class CheckStopOut(BaseModel):
     nights: int
     pinned: bool = False
     area: str | None = None
+    lat: float | None = None
+    lon: float | None = None
 
 
 class MoveOut(BaseModel):
