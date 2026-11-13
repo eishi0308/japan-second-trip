@@ -29,6 +29,7 @@ from datetime import UTC, datetime
 
 from jst_api.domain.enums import Area, Pace
 from jst_api.domain.fact_state import FactState, fact_state
+from jst_api.planner.feasibility import Assumptions, Checker, Itinerary, StopSpec
 from jst_api.planner.model import (
     DEFAULT_HUB,
     DEFAULT_NIGHTS,
@@ -133,6 +134,7 @@ class Planner:
         self.catalogue = catalogue
         self.travel = TravelModel(catalogue)
         self.now = now or datetime.now(UTC)
+        self.checker = Checker(catalogue, now=self.now)
 
     # ------------------------------------------------------------------
     # entry point
@@ -252,12 +254,19 @@ class Planner:
     # ------------------------------------------------------------------
     # one month + nights: the three options
     # ------------------------------------------------------------------
-    def option_set(self, resolved: Resolved, *, explain: bool = True) -> OptionSet:
+    def option_set(
+        self, resolved: Resolved, *, explain: bool = True, check: bool | None = None
+    ) -> OptionSet:
+        """``explain`` adds rejections and zero-result suggestions; ``check`` runs the
+        feasibility engine on each option (defaults to ``explain``)."""
+        check = explain if check is None else check
         prefs = preferences_from(resolved.conditions, self.catalogue.places)
         funnel = self.funnel(resolved, prefs)
         combos = self.combos(resolved, prefs, funnel)
         picked = pick_characters(combos, set(resolved.conditions.must_include))
-        options = [self._option(character, combo, resolved) for character, combo in picked]
+        options = [
+            self._option(character, combo, resolved, check=check) for character, combo in picked
+        ]
         used_areas = {p.area for _, combo in picked for p in combo.stops}
         return OptionSet(
             month=resolved.month,
@@ -391,7 +400,9 @@ class Planner:
     # ------------------------------------------------------------------
     # presenting one option
     # ------------------------------------------------------------------
-    def _option(self, character: str, combo: Combo, resolved: Resolved) -> OptionOut:
+    def _option(
+        self, character: str, combo: Combo, resolved: Resolved, *, check: bool = True
+    ) -> OptionOut:
         month = resolved.month
         pins = set(resolved.conditions.must_include)
         budget = travel_budget(resolved.nights, resolved.conditions.pace)
@@ -456,6 +467,25 @@ class Planner:
             season_label=f"{MONTH_NAMES[month - 1]}: {SEASON_WORDS[season]}",
             whats_hard=self._whats_hard(combo, resolved, longest),
             verification=self._verification(combo),
+            check=self.checker.check(self.itinerary_of(combo, resolved)) if check else None,
+        )
+
+    def itinerary_of(self, combo: Combo, resolved: Resolved) -> Itinerary:
+        """The option as an itinerary the feasibility engine can check (and the UI can edit)."""
+        c = resolved.conditions
+        pins = set(c.must_include)
+        return Itinerary(
+            stops=tuple(
+                StopSpec(p.slug, n, pinned=p.slug in pins)
+                for p, n in zip(combo.stops, combo.nights, strict=True)
+            ),
+            month=resolved.month,
+            arrival=resolved.arrival,
+            departure=resolved.departure,
+            transport=c.transport,
+            pace=c.pace,
+            big_luggage=c.big_luggage,
+            assumptions=Assumptions(whole_trip=False),
         )
 
     def _label(self, slug: str) -> str:

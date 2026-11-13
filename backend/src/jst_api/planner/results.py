@@ -103,6 +103,8 @@ class OptionOut(BaseModel):
     season_label: str
     whats_hard: list[HardItem]
     verification: VerificationOut
+    check: CheckResult | None = None
+    """The feasibility check of this option, day by day (M3)."""
 
 
 class RejectionOut(BaseModel):
@@ -155,3 +157,110 @@ class PlanResult(BaseModel):
     seasons: list[SeasonChoice] = Field(default_factory=list)
     nights_options: list[NightsChoice] = Field(default_factory=list)
     is_demo: bool = True
+
+
+# ---------------------------------------------------------------------------
+# Feasibility check (M3): shared by Where Next options and RouteCheck
+# ---------------------------------------------------------------------------
+Verdict = Literal["works", "needs_attention", "will_not_work"]
+VERDICT_LABELS: dict[str, str] = {
+    "works": "Works",
+    "needs_attention": "Needs attention",
+    "will_not_work": "Will not work",
+}
+
+
+class EvidenceOut(BaseModel):
+    source_id: str | None
+    label: str
+    fact_state: Literal["verified", "stale", "unverified", "being_checked"]
+    verified_at: datetime | None = None
+    is_demo: bool = True
+
+
+class CheckStopOut(BaseModel):
+    name: str
+    slug: str | None
+    kind: Literal["place", "city", "unknown"]
+    nights: int
+    pinned: bool = False
+    area: str | None = None
+
+
+class MoveOut(BaseModel):
+    origin: str
+    destination: str
+    depart: str
+    arrive: str
+    minutes: int
+    transfers: int
+    estimated: bool = True
+
+
+class DayOut(BaseModel):
+    day: int
+    date: str | None = None
+    title: str
+    overnight: str | None
+    moving_minutes: int
+    staying_minutes: int
+    moving_label: str
+    staying_label: str
+    moves: list[MoveOut] = Field(default_factory=list)
+    issue_ids: list[str] = Field(default_factory=list)
+
+
+class DiffOut(BaseModel):
+    gained: list[str]
+    lost: list[str]
+
+
+class FixOut(BaseModel):
+    id: str
+    label: str
+    stops: list[CheckStopOut]
+    diff: DiffOut
+    verdict_after: Verdict
+    verdict_after_label: str
+
+
+class IssueOut(BaseModel):
+    id: str
+    kind: str
+    severity: Literal["critical", "warning", "info"]
+    title: str
+    why: str
+    day: int | None = None
+    stop: str | None = None
+    needs_review: bool = False
+    fixes: list[FixOut] = Field(default_factory=list)
+    evidence: list[EvidenceOut] = Field(default_factory=list)
+
+
+class BookingOut(BaseModel):
+    stop: str
+    text: str
+    lead_time_days: int | None = None
+    book_by: str | None = None
+    evidence: EvidenceOut
+
+
+class CheckResult(BaseModel):
+    verdict: Verdict
+    verdict_label: str
+    summary: str
+    stops: list[CheckStopOut]
+    assumptions: list[AssumptionOut]
+    days: list[DayOut]
+    issues: list[IssueOut]
+    booking: list[BookingOut]
+    moving_minutes: int
+    hotel_changes: int
+    is_demo: bool = True
+
+
+OptionOut.model_rebuild()
+OptionSet.model_rebuild()
+SeasonChoice.model_rebuild()
+NightsChoice.model_rebuild()
+PlanResult.model_rebuild()

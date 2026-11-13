@@ -42,6 +42,10 @@ async def load_planner_catalogue(
                 source_id=link.source_id,
                 closed_months=tuple(link.closed_months or ()),
                 lead_time_days=link.lead_time_days,
+                last_departure_local=link.last_departure_local,
+                closed_weekdays=tuple(link.closed_weekdays or ()),
+                frequency_per_day=link.frequency_per_day,
+                conflicting_values=tuple(str(v) for v in link.conflicting_values or ()),
             )
         )
     places = {
@@ -63,6 +67,7 @@ async def load_planner_catalogue(
             verified_at=d.verified_at,
             is_demo=d.is_demo,
             fragile=tuple(notes.get(d.slug, ())),
+            source_id=d.source_id,
         )
         for d in (await session.scalars(select(Destination).order_by(Destination.slug))).all()
     }

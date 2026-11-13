@@ -113,6 +113,8 @@ The character, the destination combination, and a one-line description. Then:
 - Travel times between two stops go via their hubs. Where two stops share a
   hub, that overestimates a short local hop. This errs towards calling a trip
   heavier, never lighter.
+- Every option is checked day by day by the feasibility engine
+  (`docs/feasibility-engine.md`).
 - The one-line description is the stops' catalogue summaries joined
   together. A model-written narrative over the same facts comes later.
 - All catalogue data is DEMO.

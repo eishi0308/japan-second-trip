@@ -50,6 +50,10 @@ class FragileNote:
     source_id: str
     closed_months: tuple[int, ...] = ()
     lead_time_days: int | None = None
+    last_departure_local: str | None = None
+    closed_weekdays: tuple[int, ...] = ()
+    frequency_per_day: int | None = None
+    conflicting_values: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -71,6 +75,7 @@ class Place:
     verified_at: datetime | None
     is_demo: bool = True
     fragile: tuple[FragileNote, ...] = ()
+    source_id: str | None = None
 
     @property
     def access(self) -> DestinationAccess:
