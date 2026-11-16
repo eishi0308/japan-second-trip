@@ -237,6 +237,7 @@ class IssueOut(BaseModel):
     day: int | None = None
     stop: str | None = None
     needs_review: bool = False
+    fact_id: str | None = None
     fixes: list[FixOut] = Field(default_factory=list)
     evidence: list[EvidenceOut] = Field(default_factory=list)
 

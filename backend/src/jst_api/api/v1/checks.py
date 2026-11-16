@@ -26,6 +26,7 @@ from jst_api.services.check_service import (
     parse_itinerary,
     run_check,
 )
+from jst_api.services.fact_review_service import ensure_tasks
 from jst_api.services.plan_service import resolve_hub
 
 router = APIRouter(prefix="/checks", tags=["checks"])
@@ -137,6 +138,7 @@ async def parse(
 @router.post("", response_model=CheckResponse)
 async def check(body: CheckRequest, session: SessionDep) -> CheckResponse:
     outcome = await run_check(session, await _itinerary(session, body))
+    await ensure_tasks(session, [outcome.check])
     return CheckResponse(check=outcome.check, also_consider=outcome.also_consider)
 
 

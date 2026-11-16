@@ -219,6 +219,10 @@ providers and seeded evidence, and every affected result says so — a banner, a
 5. `/check` → "Use an example" → confirm the parsed table, pin Ginzan Onsen,
    pick January. The Ginzan last bus is "Being checked", and no fix removes
    Ginzan.
+6. Save that trip, then open `/admin` with the admin token. The Ginzan last bus
+   is at the top of the verification queue. Confirm a time, for example
+   17:00. The saved trip shows "We re-checked your trip: …" with what
+   changed. See [`docs/review-loop.md`](docs/review-loop.md).
 
 ### Environment
 
@@ -341,7 +345,7 @@ real MCP session; only outbound HTTP is faked. CI runs the whole backend suite
 against **both** SQLite and PostgreSQL, because the offline path and the
 production path must both keep working.
 
-Both legs have now actually been run: 377 pass on PostgreSQL, 374 on SQLite
+Both legs have been run: 379 pass on SQLite; PostgreSQL last ran at M4 (377 pass) and was not re-run for M5 because Docker was down
 (3 durable-checkpoint tests need a real PostgreSQL and skip). That is worth
 stating precisely, because for most of this project's life the PostgreSQL leg
 had never executed — a session-scoped asyncpg engine against pytest-asyncio's

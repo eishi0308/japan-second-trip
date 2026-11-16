@@ -7,6 +7,8 @@
 * ``saved_trips``: the traveller's chosen itinerary (``/trip/[id]``). It is
   edited with an owner token and read through a separate share id that
   grants read-only access.
+  When a reviewer resolves a fact the trip depends on, the trip is re-checked
+  and gets a notice (M5).
 * ``demand_events``: clicks on "See full report". Payments are out of scope
   for v1, and this records whether people would want the report.
 """
@@ -38,6 +40,11 @@ class SavedTrip(Base, TimestampMixin):
         ForeignKey("plan_records.id", ondelete="SET NULL"), nullable=True
     )
     check_request: Mapped[dict] = mapped_column(JSONBCompat, default=dict)
+    last_verdict: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    """The verdict the traveller last saw, so a resolved fact can say what changed."""
+    notices: Mapped[list] = mapped_column(JSONBCompat, default=list)
+    """Updates for the traveller, newest last: a fact a reviewer resolved, and how the
+    trip's verdict moved because of it."""
 
 
 class DemandEvent(Base, TimestampMixin):

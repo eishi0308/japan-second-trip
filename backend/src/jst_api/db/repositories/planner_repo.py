@@ -40,6 +40,7 @@ async def load_planner_catalogue(
                 state=fact_state(link.status, link.verified_at, link.freshness_ttl_days, now=now),
                 verified_at=link.verified_at,
                 source_id=link.source_id,
+                id=link.id,
                 closed_months=tuple(link.closed_months or ()),
                 lead_time_days=link.lead_time_days,
                 last_departure_local=link.last_departure_local,

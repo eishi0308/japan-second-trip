@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { SavedTrip } from "@/lib/v2";
 import { v2 } from "@/lib/v2";
 import { CheckWorkspace, tokenKey } from "./CheckWorkspace";
+import { TripNotices } from "./TripNotices";
 import { PageHeading } from "./ui";
 
 /** /trip/[id]: the owner's workspace. The owner token lives in this browser only. */
@@ -60,6 +61,7 @@ export function TripWorkspace({ id }: { id: string }) {
         </button>
         <span className="text-[0.8rem] text-ink-500">Anyone with the link can view, not edit.</span>
       </div>
+      <TripNotices notices={trip.notices} trip={{ id, token }} />
       <CheckWorkspace initialRequest={trip.check_request} initialResponse={trip.result} planId={trip.plan_id} trip={{ id, token }} />
     </div>
   );

@@ -180,6 +180,8 @@ class Issue:
     day: int | None = None
     needs_review: bool = False
     evidence: list[EvidenceOut] = field(default_factory=list)
+    fact_id: str | None = None
+    """The fragile-link record this issue rests on, for the review loop."""
 
     @property
     def key(self) -> tuple[str, str]:
@@ -508,6 +510,7 @@ class Checker:
             if note.kind not in ("last_connection", "ryokan_shuttle"):
                 continue
             evidence = [self._evidence(note)]
+            first = len(out)
             if note.state is FactState.BEING_CHECKED:
                 times = [t for v in note.conflicting_values if (t := parse_clock(v)) is not None]
                 safe = bool(times) and at_connection + TIGHT_MARGIN <= min(times)
@@ -533,6 +536,7 @@ class Checker:
                         evidence=evidence,
                     )
                 )
+                out[first].fact_id = note.id
                 continue
             last = parse_clock(note.last_departure_local)
             if note.state is FactState.UNVERIFIED or last is None:
@@ -548,6 +552,7 @@ class Checker:
                         evidence=evidence,
                     )
                 )
+                out[first].fact_id = note.id
                 continue
             stale = " The time was last checked a while ago and may be out of date." * (
                 note.state is FactState.STALE
@@ -579,6 +584,26 @@ class Checker:
                         evidence=evidence,
                     )
                 )
+            recheck = note.state is FactState.STALE and note.severity == "critical"
+            if recheck and len(out) == first:
+                when = f"{note.verified_at:%d %b %Y}" if note.verified_at else "a while ago"
+                out.append(
+                    Issue(
+                        note.kind,
+                        "warning",
+                        f"{note.title}: being checked",
+                        f"Last confirmed on {when} as {clock(last)}, which may have changed. "
+                        f"You would reach the connection around {clock(at_connection)} "
+                        "(estimated). A reviewer has been asked to re-check it.",
+                        stop=place.slug,
+                        day=day,
+                        needs_review=True,
+                        evidence=evidence,
+                    )
+                )
+            for issue in out[first:]:
+                issue.fact_id = note.id
+                issue.needs_review = issue.needs_review or recheck
         return out
 
     def _stay_issues(self, stop: Stop, day: int, itin: Itinerary, date_of) -> list[Issue]:
@@ -644,6 +669,7 @@ class Checker:
                             stop=place.slug,
                             day=day,
                             evidence=[self._evidence(note)],
+                            fact_id=note.id,
                         )
                     )
                 elif itin.start_date is None:
@@ -656,6 +682,7 @@ class Checker:
                             stop=place.slug,
                             day=day,
                             evidence=[self._evidence(note)],
+                            fact_id=note.id,
                         )
                     )
             elif note.kind == "access_disruption":
@@ -668,6 +695,7 @@ class Checker:
                         stop=place.slug,
                         day=day,
                         evidence=[self._evidence(note)],
+                        fact_id=note.id,
                     )
                 )
             elif note.kind == "weather_cancellation" and (
@@ -682,6 +710,7 @@ class Checker:
                         stop=place.slug,
                         day=day,
                         evidence=[self._evidence(note)],
+                        fact_id=note.id,
                     )
                 )
             elif note.kind == "low_frequency":
@@ -697,6 +726,7 @@ class Checker:
                         stop=place.slug,
                         day=day,
                         evidence=[self._evidence(note)],
+                        fact_id=note.id,
                     )
                 )
         return out
@@ -854,6 +884,7 @@ class Checker:
                     day=issue.day,
                     stop=issue.stop,
                     needs_review=issue.needs_review,
+                    fact_id=issue.fact_id,
                     fixes=fixes,
                     evidence=issue.evidence,
                 )

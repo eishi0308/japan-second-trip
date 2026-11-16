@@ -20,6 +20,7 @@ from jst_api.domain.enums import Interest, Pace
 from jst_api.planner.model import MAX_INTERESTS, ReactionKind, Transport
 from jst_api.planner.preferences import SCENE_CARD_BY_SLUG, SCENE_CARDS
 from jst_api.planner.results import PlanResult
+from jst_api.services.fact_review_service import ensure_tasks
 from jst_api.services.plan_service import PlanInput, build_plan
 
 router = APIRouter(prefix="/plans", tags=["plans"])
@@ -137,6 +138,12 @@ async def _respond(
         reactions=tuple((r.kind.value, tuple(r.stops)) for r in payload.reactions),
     )
     plan, inferred, latency = await build_plan(session, registry, data)
+    sets = [
+        plan.result,
+        *(s.result for s in plan.seasons),
+        *(n.result for n in plan.nights_options),
+    ]
+    await ensure_tasks(session, [o.check for s in sets if s for o in s.options])
     demo_llm: Any = registry.demo_flags.get("llm", True)
     return PlanResponse(
         plan_id=plan_id,

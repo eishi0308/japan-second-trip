@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ErrorState } from "@/components/primitives";
 import { CheckWorkspace } from "@/components/v2/CheckWorkspace";
+import { TripNotices } from "@/components/v2/TripNotices";
 import { PageHeading } from "@/components/v2/ui";
 import { ApiRequestError } from "@/lib/api";
 import type { SavedTrip } from "@/lib/v2";
@@ -27,6 +28,7 @@ export default async function SharePage({ params }: { params: Promise<{ shareId:
       <PageHeading eyebrow="Shared trip (read-only)" title={trip.title}>
         Checked today{trip.updated_at ? `; last changed ${formatDate(trip.updated_at)}` : ""}.
       </PageHeading>
+      <TripNotices notices={trip.notices} />
       <CheckWorkspace initialRequest={trip.check_request} initialResponse={trip.result} readOnly />
     </div>
   );

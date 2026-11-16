@@ -54,6 +54,7 @@ class FragileNote:
     closed_weekdays: tuple[int, ...] = ()
     frequency_per_day: int | None = None
     conflicting_values: tuple[str, ...] = ()
+    id: str | None = None
 
 
 @dataclass(frozen=True)

@@ -211,3 +211,30 @@ def test_every_where_next_option_is_checked_day_by_day() -> None:
         assert option.check.verdict_label in ("Works", "Needs attention", "Will not work")
         pinned = {s.slug for s in option.stops if s.pinned}
         assert pinned == {s.slug for s in option.check.stops if s.pinned}
+
+
+def test_a_stale_critical_fact_is_re_checked_not_trusted_silently() -> None:
+    note = _note(
+        "last_connection",
+        last_departure_local="16:45",
+        state=FactState.STALE,
+        verified_at=NOW - timedelta(days=400),
+        id="frg_stale",
+    )
+    cat = _with_notes("nyuto", note)
+    result = Checker(cat, now=NOW).check(_itin(StopSpec("Tokyo", 1), StopSpec("nyuto", 2)))
+    issue = next(i for i in result.issues if i.kind == "last_connection")
+    assert issue.needs_review and issue.fact_id == "frg_stale"
+    assert "being checked" in issue.title
+    assert "16:45" in issue.why  # the last confirmed value, with its date
+    assert issue.evidence[0].fact_state == "stale"
+
+
+def test_every_fragile_issue_names_its_fact() -> None:
+    note = _note("last_connection", last_departure_local="16:45", id="frg_1")
+    cat = _with_notes("nyuto", note)
+    result = Checker(cat, now=NOW).check(
+        _itin(StopSpec("Tokyo", 1, leave_at=15 * 60), StopSpec("nyuto", 2))
+    )
+    issue = next(i for i in result.issues if i.kind == "last_connection")
+    assert issue.fact_id == "frg_1"

@@ -298,6 +298,40 @@ export interface SavedTrip {
   check_request: CheckRequest;
   result: CheckResponse;
   updated_at: string | null;
+  notices: TripNotice[];
+}
+
+export interface TripNotice {
+  at: string;
+  fact_id: string;
+  text: string;
+  verdict_before: Verdict | null;
+  verdict_after: Verdict;
+  seen: boolean;
+}
+
+export interface FactQueueItem {
+  fact_id: string;
+  destination: string;
+  destination_slug: string;
+  kind: string;
+  title: string;
+  detail: string;
+  state: FactState;
+  severity: string;
+  current_value: string | null;
+  candidate_values: string[];
+  verified_at: string | null;
+  task_id: string | null;
+  trips_affected: number;
+}
+
+export interface FactResolution {
+  fact_id: string;
+  value: string | null;
+  verification_id: string;
+  tasks_closed: number;
+  trips_updated: { trip_id: string; verdict_before: Verdict | null; verdict_after: Verdict }[];
 }
 
 // ---------------------------------------------------------------- calls
@@ -315,6 +349,14 @@ export const v2 = {
   getTrip: (id: string, token: string) => apiFetch<SavedTrip>(`/api/v1/saved-trips/${encodeURIComponent(id)}`, { token }),
   updateTrip: (id: string, token: string, body: { title?: string; check?: CheckRequest }) =>
     apiFetch<SavedTrip>(`/api/v1/saved-trips/${encodeURIComponent(id)}`, { method: "PUT", body, token }),
+  markNoticesSeen: (id: string, token: string) =>
+    apiFetch<SavedTrip>(`/api/v1/saved-trips/${encodeURIComponent(id)}/notices/seen`, { method: "POST", body: {}, token }),
+  factQueue: (token: string) => apiFetch<{ items: FactQueueItem[]; count: number }>("/api/v1/admin/facts/queue", { token }),
+  resolveFact: (
+    token: string,
+    factId: string,
+    body: { value?: string | null; note?: string | null; source_url?: string | null; reviewer: string },
+  ) => apiFetch<FactResolution>(`/api/v1/admin/facts/${encodeURIComponent(factId)}/resolve`, { method: "POST", body, token }),
   shared: (shareId: string) => apiFetch<SavedTrip>(`/api/v1/shared/${encodeURIComponent(shareId)}`),
   fullReport: (body: { plan_id?: string | null; trip_id?: string | null; option?: number | null }) =>
     apiFetch<{ status: string; message: string }>("/api/v1/demand", {

@@ -9,7 +9,7 @@ trip always shows today's facts (and a reviewer's resolution, in M5).
 from __future__ import annotations
 
 import secrets
-from typing import Literal
+from typing import Any, Literal
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
@@ -18,8 +18,10 @@ from jst_api.api.deps import PrincipalDep, SessionDep
 from jst_api.api.v1.checks import CheckRequest, CheckResponse, _itinerary
 from jst_api.core.errors import ForbiddenError, NotFoundError
 from jst_api.db.models import DemandEvent, PlanRecord, SavedTrip
+from jst_api.planner.results import CheckResult
 from jst_api.security.auth import Principal, issue_trip_token
 from jst_api.services.check_service import run_check
+from jst_api.services.fact_review_service import ensure_tasks
 
 router = APIRouter(tags=["saved trips"])
 
@@ -48,6 +50,8 @@ class SavedTripOut(BaseModel):
     check_request: CheckRequest
     result: CheckResponse
     updated_at: str | None
+    notices: list[dict[str, Any]] = Field(default_factory=list)
+    """Updates since the trip was saved, e.g. a fact a reviewer confirmed (newest last)."""
 
 
 class SaveTripResponse(BaseModel):
@@ -68,9 +72,20 @@ def _owner(principal: Principal, trip_id: str) -> None:
     raise ForbiddenError("Only the trip's owner can change it. Use the share link to view it.")
 
 
+async def recheck_trip(session: SessionDep, trip: SavedTrip) -> CheckResult:
+    """Re-run a saved trip's check on today's facts (used by the review loop)."""
+    request = CheckRequest.model_validate(trip.check_request)
+    return (await run_check(session, await _itinerary(session, request))).check
+
+
 async def _out(session: SessionDep, trip: SavedTrip, *, read_only: bool) -> SavedTripOut:
     request = CheckRequest.model_validate(trip.check_request)
     outcome = await run_check(session, await _itinerary(session, request))
+    await ensure_tasks(session, [outcome.check])
+    if not read_only:
+        # What the owner has now seen: a later resolution reports change against it.
+        trip.last_verdict = outcome.check.verdict
+        await session.flush()
     return SavedTripOut(
         id=None if read_only else trip.id,
         share_id=trip.share_id,
@@ -81,6 +96,7 @@ async def _out(session: SessionDep, trip: SavedTrip, *, read_only: bool) -> Save
         check_request=request,
         result=CheckResponse(check=outcome.check, also_consider=outcome.also_consider),
         updated_at=trip.updated_at.isoformat() if trip.updated_at else None,
+        notices=list(trip.notices or []),
     )
 
 
@@ -126,6 +142,19 @@ async def update_saved_trip(
     if body.check is not None:
         await _itinerary(session, body.check)
         trip.check_request = body.check.model_dump(mode="json")
+    await session.flush()
+    return await _out(session, trip, read_only=False)
+
+
+@router.post("/saved-trips/{trip_id}/notices/seen", response_model=SavedTripOut)
+async def mark_notices_seen(
+    trip_id: str, session: SessionDep, principal: PrincipalDep
+) -> SavedTripOut:
+    _owner(principal, trip_id)
+    trip = await session.get(SavedTrip, trip_id)
+    if trip is None:
+        raise NotFoundError("That trip does not exist.")
+    trip.notices = [{**n, "seen": True} for n in (trip.notices or [])]
     await session.flush()
     return await _out(session, trip, read_only=False)
 
