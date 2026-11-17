@@ -1,0 +1,66 @@
+# Product evals (M6)
+
+`python -m evals.run product`. Part of the CI subset (`python -m evals.run ci`).
+
+The other suites measure the AI machinery. This one measures the promises the
+product makes to a traveller (PRODUCT_AMENDMENTS.md §11, M6). Every case goes
+through the real API on the real seeded catalogue. The suite seeds its own
+throwaway SQLite database, so it needs no database server. Set
+`PRODUCT_EVAL_DATABASE_URL` to point it at another database instead.
+
+Dataset: [`evals/datasets/product_v1.json`](../../evals/datasets/product_v1.json),
+with 11 Where Next requests (both hero demos, other months, cities, driving,
+kids and limited walking, must-include places, undecided nights, a 2-night trip)
+and 4 RouteChecks (the Ginzan hero, a late start, a trip with two pins, an
+unknown place). Report: `evals/reports/product.json`.
+
+## What is checked
+
+| Property | Rule | Result |
+| --- | --- | --- |
+| Option diversity | 3 options as Classic / Unexpected / Slow-paced; no unpinned place shared between two options | 1.00 |
+| Rejection correctness | an area under "Not for this trip" has no option in it and gives a reason | 1.00 |
+| Counterfactuals honoured | apply each "if you change X" to the request and plan again: the area must become an option or stop being ruled out for that reason | 18/18 |
+| Pinned-stop preservation | must-include places are pinned in every option; no fix, in any option or RouteCheck, drops a pinned stop | 1.00 |
+| No uncited operational facts | every warning or critical issue has evidence with a source; verified or stale evidence is dated; fragile issues name their fact; a fact being checked never shows its conflicting values; every booking deadline has dated evidence; "no verified info yet" never states a time | 1.00 (62 claims) |
+
+The suite fails if any case fails, or if fewer than 80% of counterfactuals are
+honoured.
+
+## What it caught
+
+The first run failed: Nyuto Onsen's ryokan pick-up record has never been
+verified and has no source, yet it produced a "must be booked" item under "To
+book ahead". A booking deadline is an operational claim, so the checker now
+makes booking items only from dated evidence
+(`planner/feasibility.py`, `_booking`; unit test
+`test_an_unverified_booking_note_gives_no_booking_deadline`).
+
+## Reported, not gated
+
+`counterfactual_in_options` is 6/18 (0.33). After applying an "if you change X"
+note, the area always stops being ruled out, but it shows up as one of the
+three options in only a third of cases. In the rest, it fits but better areas
+fill the three slots. The note says the area "becomes a possible option", which
+is true of the area but may read as a promise that it will be shown. Whether to
+reword the note, or have the planner check that the area would make the top
+three, is a product decision.
+
+## Hero demos as browser tests
+
+[`frontend/tests/e2e/hero-demo.spec.ts`](../../frontend/tests/e2e/hero-demo.spec.ts)
+runs both hero demos from §10 in a real browser against the real API, on
+desktop and mobile viewports:
+
+1. Plan (January, 4 nights, Tokyo in/out, no car, onsen + snow + food): three
+   options in character order, Kyushu ruled out with "If you can fly out of
+   Fukuoka", compare plus a what-if toggle, day-by-day timeline (5 days) with
+   dated evidence, pin and swap re-run the check, save, then open the read-only
+   share link.
+2. RouteCheck on "Tokyo 3N, Sendai 1N, Ginzan Onsen 1N, Aomori 1N, Hakodate 1N,
+   Tokyo" with Ginzan pinned: fixes are applied one by one and Ginzan stays
+   pinned and cannot be removed.
+3. The vague user: season choice, then nights choice, then three options with
+   "Assumed: Tokyo in/out"; "Not for me" regenerates the options.
+
+Run with both servers up: `cd frontend && npx playwright test`.

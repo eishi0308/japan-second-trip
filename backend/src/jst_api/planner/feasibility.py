@@ -741,6 +741,9 @@ class Checker:
                 and not note.lead_time_days
             ):
                 continue
+            if note.verified_at is None or note.source_id is None:
+                # A booking deadline is an operational claim: only dated evidence makes one.
+                continue
             book_by = None
             if arrival_date and note.lead_time_days:
                 book_by = (arrival_date - timedelta(days=note.lead_time_days)).isoformat()

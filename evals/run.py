@@ -27,6 +27,7 @@ sys.path.insert(0, str(ROOT))
 
 from evals.runners import (
     agent,
+    product,
     production,
     rag,
     retrieval,
@@ -37,8 +38,8 @@ from evals.runners import (
 from evals.runners.common import write_json
 
 #: Suites that must be green for a PR to merge. Fast, deterministic, no network.
-CI_SUITES = ["retrieval", "tool", "security", "rag"]
-ALL_SUITES = ["retrieval", "tool", "security", "rag", "agent", "production"]
+CI_SUITES = ["retrieval", "tool", "security", "rag", "product"]
+ALL_SUITES = ["retrieval", "tool", "security", "rag", "agent", "production", "product"]
 
 
 async def _run_suite(name: str, *, persist: bool) -> dict:
@@ -67,6 +68,7 @@ async def _run_suite(name: str, *, persist: bool) -> dict:
         "rag": rag,
         "agent": agent,
         "production": production,
+        "product": product,
     }[name]
     result = await module.run(persist=persist)
     return {

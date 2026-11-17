@@ -238,3 +238,17 @@ def test_every_fragile_issue_names_its_fact() -> None:
     )
     issue = next(i for i in result.issues if i.kind == "last_connection")
     assert issue.fact_id == "frg_1"
+
+
+def test_an_unverified_booking_note_gives_no_booking_deadline() -> None:
+    note = _note(
+        "ryokan_shuttle",
+        severity="warning",
+        title="Ryokan pick-up must be booked",
+        state=FactState.UNVERIFIED,
+        verified_at=None,
+        source_id=None,
+    )
+    cat = _with_notes("nyuto", note)
+    result = Checker(cat, now=NOW).check(_itin(StopSpec("nyuto", 2), start_date=date(2027, 1, 10)))
+    assert result.booking == []

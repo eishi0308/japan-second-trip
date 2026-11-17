@@ -250,7 +250,14 @@ security     19/19
 rag           6/6    relevance 1.00  citations 1.00  grounded 1.00  unsupported 0
 agent         8/8    p50 381ms  p95 570ms
 production   12/12   p50 307ms  p95 350ms  5209 tokens/run
+product      15/15   diversity 1.00  rejections 1.00  pins kept 1.00  cited facts 1.00
 ```
+
+The **product** suite checks the promises made to a traveller: three distinct
+options, honest "Not for this trip" notes (each "if you change X" is applied and
+re-planned), pinned stops never removed by any fix, and no operational fact
+without a dated source. It seeds its own SQLite database, so it needs no server.
+Details: [`docs/evals/product-evals.md`](docs/evals/product-evals.md).
 
 ### The retrieval decision was measured, not assumed
 
@@ -292,6 +299,7 @@ Full report, including per-case ranks and where each retriever loses:
 | A bare delimiter spoof passed the injection scan | critical patterns quarantine on a single match |
 | A 14h return transfer for 2 nights passed | `MAX_TRANSIT_SHARE` 0.42 → 0.35 |
 | Two hops firing one rule shared an explanation | narratives keyed per issue |
+| An unverified ryokan pick-up note produced a "must be booked" deadline | booking items only from dated evidence |
 
 ### What the dual-dialect and live-flow verification caught
 
@@ -334,9 +342,9 @@ make sweep        # retrieval hyper-parameter sweep
 ## Testing
 
 ```bash
-make test         # 276 backend tests
-make test-web     # 26 frontend tests: 21 component, 5 integration against a mocked API
-make e2e          # 20 end-to-end tests × 2 viewports
+make test         # 380 backend tests
+make test-web     # 30 frontend tests: component and integration against a mocked API
+make e2e          # the hero demos end to end, × 2 viewports
 make lint         # ruff, mypy, tsc
 ```
 
@@ -345,7 +353,7 @@ real MCP session; only outbound HTTP is faked. CI runs the whole backend suite
 against **both** SQLite and PostgreSQL, because the offline path and the
 production path must both keep working.
 
-Both legs have been run: 379 pass on SQLite; PostgreSQL last ran at M4 (377 pass) and was not re-run for M5 because Docker was down
+Both legs have been run: 380 pass on SQLite; PostgreSQL last ran at M4 (377 pass) and was not re-run for M5 or M6 because Docker was down
 (3 durable-checkpoint tests need a real PostgreSQL and skip). That is worth
 stating precisely, because for most of this project's life the PostgreSQL leg
 had never executed — a session-scoped asyncpg engine against pytest-asyncio's
