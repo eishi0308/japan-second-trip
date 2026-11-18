@@ -66,4 +66,10 @@ desktop and mobile viewports:
 3. The vague user: season choice, then nights choice, then three options with
    "Assumed: Tokyo in/out"; "Not for me" regenerates the options.
 
-Run with both servers up: `cd frontend && npx playwright test`.
+[`frontend/tests/e2e/review-loop.spec.ts`](../../frontend/tests/e2e/review-loop.spec.ts)
+runs the M5 review loop the same way: a trip through Ginzan Onsen is saved
+while its last bus is "Being checked"; an admin confirms 17:00 with a source in
+`/admin`; the owner's trip and the share link both show the update. It runs
+once (desktop only) and needs a freshly seeded database, as CI has.
+
+Run with both servers up: `cd frontend && E2E_ADMIN_TOKEN=<the API's ADMIN_TOKEN> npx playwright test`.
