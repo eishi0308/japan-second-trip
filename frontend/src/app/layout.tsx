@@ -49,7 +49,7 @@ function SiteHeader() {
       <div className="shell flex h-16 items-center justify-between gap-6">
         <Link href="/" className="group flex items-baseline gap-2.5">
           <span className="font-serif text-[1.12rem] tracking-tight text-ink-900">Japan Second Trip</span>
-          <span className="hidden text-[0.7rem] uppercase tracking-[0.16em] text-ink-400 sm:inline">
+          <span className="hidden text-[0.7rem] uppercase tracking-[0.16em] text-ink-500 sm:inline">
             where next, checked
           </span>
         </Link>
