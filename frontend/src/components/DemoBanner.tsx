@@ -33,7 +33,7 @@ export async function DemoBanner() {
           Running without live credentials. Travel times, booking rules and evidence are seeded
           approximations, labelled as such throughout — not verified live data.
         </span>
-        <span className="text-ink-400">Demo adapters: {demoNames.join(", ")}</span>
+        <span className="text-ink-500">Demo adapters: {demoNames.join(", ")}</span>
       </div>
     </div>
   );
