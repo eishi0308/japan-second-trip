@@ -64,7 +64,8 @@ notices.
 
 `frontend/tests/e2e/review-loop.spec.ts` drives the same loop in a real
 browser: save a trip through Ginzan Onsen, confirm the last bus in `/admin`, and
-see the update on the trip and its share link.
+see the update on the trip and its share link. Run it again on the same
+database and it skips, since Ginzan is already confirmed; `make reset` re-seeds.
 
 ## Not in v1
 
