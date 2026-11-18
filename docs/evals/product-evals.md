@@ -9,10 +9,11 @@ throwaway SQLite database, so it needs no database server. Set
 `PRODUCT_EVAL_DATABASE_URL` to point it at another database instead.
 
 Dataset: [`evals/datasets/product_v1.json`](../../evals/datasets/product_v1.json),
-with 11 Where Next requests (both hero demos, other months, cities, driving,
-kids and limited walking, must-include places, undecided nights, a 2-night trip)
-and 4 RouteChecks (the Ginzan hero, a late start, a trip with two pins, an
-unknown place). Report: `evals/reports/product.json`.
+with 14 Where Next requests (both hero demos, other months, cities, driving,
+kids and limited walking, must-include places, undecided nights, a 2-night and a
+10-night trip, December Hokkaido, an August coast drive) and 6 RouteChecks (the
+Ginzan hero, a late start, two trips with two pins, an unknown place, a pinned
+place closed in winter). Report: `evals/reports/product.json`.
 
 ## What is checked
 
@@ -20,9 +21,9 @@ unknown place). Report: `evals/reports/product.json`.
 | --- | --- | --- |
 | Option diversity | 3 options as Classic / Unexpected / Slow-paced; no unpinned place shared between two options | 1.00 |
 | Rejection correctness | an area under "Not for this trip" has no option in it and gives a reason | 1.00 |
-| Counterfactuals honoured | apply each "if you change X" to the request and plan again: a note saying the area "becomes" an option must put it in the options; a "fits too" note must at least stop it being ruled out for that reason | 18/18 |
+| Counterfactuals honoured | apply each "if you change X" to the request and plan again: a note saying the area "becomes" an option must put it in the options; a "fits too" note must at least stop it being ruled out for that reason | 27/27 |
 | Pinned-stop preservation | must-include places are pinned in every option; no fix, in any option or RouteCheck, drops a pinned stop | 1.00 |
-| No uncited operational facts | every warning or critical issue has evidence with a source; verified or stale evidence is dated; fragile issues name their fact; a fact being checked never shows its conflicting values; every booking deadline has dated evidence; "no verified info yet" never states a time | 1.00 (62 claims) |
+| No uncited operational facts | every warning or critical issue has evidence with a source; verified or stale evidence is dated; fragile issues name their fact; a fact being checked never shows its conflicting values; every booking deadline has dated evidence; "no verified info yet" never states a time | 1.00 (74 claims) |
 
 The suite fails if any case fails, or if any counterfactual is not honoured.
 
