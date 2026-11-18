@@ -728,41 +728,65 @@ class Planner:
         """The single change that makes ``rep`` fit better than ``current``, re-checked."""
         c = resolved.conditions
 
-        def works(changed: Conditions, nights: int | None = None, month: int | None = None) -> int:
+        def works(
+            changed: Conditions, nights: int | None = None, month: int | None = None
+        ) -> str | None:
+            """What happens to the area under ``changed``, or None if nothing improves."""
             r = self.resolve(changed, month or resolved.month, nights or resolved.nights)
             prefs = preferences_from(changed, self.catalogue.places)
             if rep.season(r.month) == 0 or (not r.can_drive and rep.car_need == "required"):
-                return 0
+                return None
             combo = self._best_combo((rep,), r, prefs, enforce_budget=True)
             if combo is None:
-                return 0
+                return None
             lighter = code == "heavy" and (
                 travel_load(combo.route, travel_budget(r.nights, changed.pace, prefs)) != "heavy"
             )
-            return combo.fit.level if combo.fit.level > current or lighter else 0
+            if not (combo.fit.level > current or lighter):
+                return None
+            # Re-plan with the change: only promise an option the traveller would see.
+            shown = self.option_set(r, explain=False, check=False)
+            if any(p.area == rep.area for o in shown.options for p in o.stops):
+                strength = "strong" if combo.fit.level >= 4 else "possible"
+                return f"{area_label} becomes a {strength} option"
+            return f"{area_label} fits too, though other areas would still rank higher"
 
-        def becomes(level: int) -> str:
-            return f"{area_label} becomes a {'strong' if level >= 4 else 'possible'} option"
+        def first(tries: list[tuple[str, Conditions, int | None]]) -> str | None:
+            """The first change that makes the area an option; else the first that helps."""
+            fallback = None
+            for prefix, changed, nights in tries:
+                outcome = works(changed, nights=nights)
+                if outcome and " becomes a " in outcome:
+                    return f"{prefix}, {outcome}."
+                if outcome and fallback is None:
+                    fallback = f"{prefix}, {outcome}."
+            return fallback
 
         if code in ("reach", "heavy"):
-            for gateway in self.catalogue.gateways_in(rep.area):
-                if gateway.slug == resolved.departure:
-                    continue
-                if level := works(
-                    c.with_(arrival_hub=resolved.arrival, departure_hub=gateway.slug)
-                ):
-                    return f"If you can fly out of {gateway.name}, {becomes(level)}."
-            for extra in (2, 3):
-                if level := works(c, nights=resolved.nights + extra):
-                    return f"With {resolved.nights + extra} regional nights, {becomes(level)}."
-            for gateway in self.catalogue.gateways_in(rep.area):
-                if level := works(c.with_(arrival_hub=gateway.slug, departure_hub=gateway.slug)):
-                    return f"If you fly into and out of {gateway.name}, {becomes(level)}."
-            return None
+            tries: list[tuple[str, Conditions, int | None]] = [
+                (
+                    f"If you can fly out of {g.name}",
+                    c.with_(arrival_hub=resolved.arrival, departure_hub=g.slug),
+                    None,
+                )
+                for g in self.catalogue.gateways_in(rep.area)
+                if g.slug != resolved.departure
+            ]
+            tries += [
+                (f"With {resolved.nights + extra} regional nights", c, resolved.nights + extra)
+                for extra in (2, 3)
+            ]
+            tries += [
+                (
+                    f"If you fly into and out of {g.name}",
+                    c.with_(arrival_hub=g.slug, departure_hub=g.slug),
+                    None,
+                )
+                for g in self.catalogue.gateways_in(rep.area)
+            ]
+            return first(tries)
         if code == "car":
-            if level := works(c.with_(transport=Transport.CAN_DRIVE)):
-                return f"If you can drive, {becomes(level)}."
-            return None
+            return first([("If you can drive", c.with_(transport=Transport.CAN_DRIVE), None)])
         if code == "season":
             good = [m for m in range(1, 13) if rep.season(m) >= 2]
             if current and good:
