@@ -57,6 +57,28 @@ describe("not for this trip", () => {
     );
     expect(screen.getByText(/If you can fly out of Fukuoka/)).toBeInTheDocument();
   });
+
+  it("says plainly when an area fits but still would not make the three options", () => {
+    render(
+      <NotForThisTrip
+        rejections={[
+          { area: "okinawa", area_label: "Okinawa", example: "Ishigaki", reason: "Too much travel from Tokyo.", if_you_change: "If you can fly out of Naha, Okinawa fits too, though other areas would still rank higher." },
+        ]}
+      />,
+    );
+    expect(screen.getByText(/fits too, though other areas would still rank higher/)).toBeInTheDocument();
+    expect(screen.queryByText(/becomes a/)).not.toBeInTheDocument();
+  });
+
+  it("shows a ruled-out area without a change when none would help", () => {
+    render(
+      <NotForThisTrip
+        rejections={[{ area: "shikoku", area_label: "Shikoku", example: "Iya Valley", reason: "Little here for snow.", if_you_change: null }]}
+      />,
+    );
+    expect(screen.getByText("Little here for snow.")).toBeInTheDocument();
+    expect(screen.getByText("1 area ruled out, and why")).toBeInTheDocument();
+  });
 });
 
 describe("issues and fixes", () => {
