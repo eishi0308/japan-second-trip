@@ -388,7 +388,8 @@
       "expect": {
         "issue_kinds": [
           "not_in_database"
-        ]
+        ],
+        "verdict_not": "works"
       }
     },
     {
@@ -442,7 +443,8 @@
       "expect": {
         "issue_kinds": [
           "seasonal_closure"
-        ]
+        ],
+        "verdict": "will_not_work"
       }
     }
   ],
