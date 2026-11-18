@@ -362,7 +362,7 @@ function ReviewCard({
       )}
 
       {review.evidence_ids.length > 0 ? (
-        <p className="mt-3 font-mono text-[0.7rem] text-ink-400">evidence: {review.evidence_ids.join(", ")}</p>
+        <p className="mt-3 font-mono text-[0.7rem] text-ink-500">evidence: {review.evidence_ids.join(", ")}</p>
       ) : null}
     </article>
   );
@@ -863,7 +863,7 @@ function OpsTab({ token }: { token: string }) {
               <li key={row.id} className="px-5 py-3">
                 <p className="font-mono text-[0.8rem] text-ink-900">{row.tool_name}</p>
                 <p className="mt-0.5 text-[0.82rem] text-ink-600">{row.error}</p>
-                <p className="mt-0.5 text-[0.74rem] text-ink-400">
+                <p className="mt-0.5 text-[0.74rem] text-ink-500">
                   {row.attempts} attempt(s) · {row.latency_ms}ms · {row.created_at?.slice(0, 16).replace("T", " ")}
                 </p>
               </li>
