@@ -416,6 +416,34 @@
         "mode": "regional"
       },
       "expect": {}
+    },
+    {
+      "id": "closed-in-winter",
+      "request": {
+        "stops": [
+          {
+            "name": "Tokyo",
+            "nights": 1
+          },
+          {
+            "name": "Kamikochi",
+            "nights": 2,
+            "pinned": true
+          },
+          {
+            "name": "Tokyo",
+            "nights": 0
+          }
+        ],
+        "month": 1,
+        "arrival_city": "Tokyo",
+        "departure_city": "Tokyo"
+      },
+      "expect": {
+        "issue_kinds": [
+          "seasonal_closure"
+        ]
+      }
     }
   ],
   "thresholds": {
