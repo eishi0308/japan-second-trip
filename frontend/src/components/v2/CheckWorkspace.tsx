@@ -209,7 +209,7 @@ function ItineraryEditor({
       <ol className="divide-y divide-ink-100 rounded-lg border border-ink-200 bg-white">
         {stops.map((s, i) => (
           <li key={`${s.name}-${i}`} className="flex flex-wrap items-center gap-2 px-3 py-2.5">
-            <span className="w-5 text-right text-[0.8rem] tabular-nums text-ink-400">{i + 1}</span>
+            <span className="w-5 text-right text-[0.8rem] tabular-nums text-ink-500">{i + 1}</span>
             <span className={`min-w-32 flex-1 font-medium ${kinds?.[i] === "unknown" ? "text-signal-critical" : "text-ink-900"}`}>
               {label(i, s)}
               {kinds?.[i] === "unknown" ? <span className="ml-2 text-[0.75rem] font-normal">No verified info yet</span> : null}
