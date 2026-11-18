@@ -6,59 +6,207 @@
     {
       "id": "hero-january-onsen-snow-food",
       "note": "Hero demo 1 (§10).",
-      "request": {"month": 1, "regional_nights": 4, "arrival_city": "Tokyo", "departure_city": "Tokyo", "transport": "no_car", "interests": ["onsen", "snow", "food"]},
-      "expect": {"kind": "options", "rejected_areas": ["kyushu"]}
+      "request": {
+        "month": 1,
+        "regional_nights": 4,
+        "arrival_city": "Tokyo",
+        "departure_city": "Tokyo",
+        "transport": "no_car",
+        "interests": [
+          "onsen",
+          "snow",
+          "food"
+        ]
+      },
+      "expect": {
+        "kind": "options",
+        "rejected_areas": [
+          "kyushu"
+        ]
+      }
     },
     {
       "id": "hero-vague-user",
       "note": "Hero demo 2 (§10): everything undecided.",
-      "request": {"past_trip_best": "Loved Nishiki Market food walks, tired of crowds", "scene_cards": ["snowy-onsen-town", "fishing-village"]},
-      "expect": {"kind": "season_choice", "assumption_labels": ["Assumed: Tokyo in/out"]}
+      "request": {
+        "past_trip_best": "Loved Nishiki Market food walks, tired of crowds",
+        "scene_cards": [
+          "snowy-onsen-town",
+          "fishing-village"
+        ]
+      },
+      "expect": {
+        "kind": "season_choice",
+        "assumption_labels": [
+          "Assumed: Tokyo in/out"
+        ]
+      }
     },
     {
       "id": "hero-fly-out-of-fukuoka",
-      "request": {"month": 1, "regional_nights": 4, "arrival_city": "Tokyo", "departure_city": "Fukuoka", "transport": "no_car", "interests": ["onsen", "snow", "food"]},
-      "expect": {"kind": "options", "option_areas": ["kyushu"]}
+      "request": {
+        "month": 1,
+        "regional_nights": 4,
+        "arrival_city": "Tokyo",
+        "departure_city": "Fukuoka",
+        "transport": "no_car",
+        "interests": [
+          "onsen",
+          "snow",
+          "food"
+        ]
+      },
+      "expect": {
+        "kind": "options",
+        "option_areas": [
+          "kyushu"
+        ]
+      }
     },
     {
       "id": "april-history-osaka",
-      "request": {"month": 4, "regional_nights": 5, "arrival_city": "Osaka", "departure_city": "Osaka", "interests": ["culture", "food"]},
-      "expect": {"kind": "options"}
+      "request": {
+        "month": 4,
+        "regional_nights": 5,
+        "arrival_city": "Osaka",
+        "departure_city": "Osaka",
+        "interests": [
+          "culture",
+          "food"
+        ]
+      },
+      "expect": {
+        "kind": "options"
+      }
     },
     {
       "id": "july-nature-driving",
-      "request": {"month": 7, "regional_nights": 6, "arrival_city": "Tokyo", "departure_city": "Tokyo", "transport": "can_drive", "interests": ["nature", "onsen"]},
-      "expect": {"kind": "options"}
+      "request": {
+        "month": 7,
+        "regional_nights": 6,
+        "arrival_city": "Tokyo",
+        "departure_city": "Tokyo",
+        "transport": "can_drive",
+        "interests": [
+          "nature",
+          "onsen"
+        ]
+      },
+      "expect": {
+        "kind": "options"
+      }
     },
     {
       "id": "october-slow-luggage",
-      "request": {"month": 10, "regional_nights": 4, "arrival_city": "Tokyo", "departure_city": "Osaka", "pace": "relaxed", "big_luggage": true, "interests": ["art", "food"]},
-      "expect": {"kind": "options"}
+      "request": {
+        "month": 10,
+        "regional_nights": 4,
+        "arrival_city": "Tokyo",
+        "departure_city": "Osaka",
+        "pace": "relaxed",
+        "big_luggage": true,
+        "interests": [
+          "art",
+          "food"
+        ]
+      },
+      "expect": {
+        "kind": "options"
+      }
     },
     {
       "id": "february-kids-limited-walking",
-      "request": {"month": 2, "regional_nights": 5, "arrival_city": "Tokyo", "departure_city": "Tokyo", "kids": true, "limited_walking": true, "interests": ["snow", "food"]},
-      "expect": {"kind": "options"}
+      "request": {
+        "month": 2,
+        "regional_nights": 5,
+        "arrival_city": "Tokyo",
+        "departure_city": "Tokyo",
+        "kids": true,
+        "limited_walking": true,
+        "interests": [
+          "snow",
+          "food"
+        ]
+      },
+      "expect": {
+        "kind": "options"
+      }
     },
     {
       "id": "must-include-ginzan",
-      "request": {"month": 1, "regional_nights": 4, "arrival_city": "Tokyo", "departure_city": "Tokyo", "interests": ["onsen", "snow"], "must_include": ["Ginzan Onsen"]},
-      "expect": {"kind": "options", "pinned_in_every_option": ["ginzan-onsen"]}
+      "request": {
+        "month": 1,
+        "regional_nights": 4,
+        "arrival_city": "Tokyo",
+        "departure_city": "Tokyo",
+        "interests": [
+          "onsen",
+          "snow"
+        ],
+        "must_include": [
+          "Ginzan Onsen"
+        ]
+      },
+      "expect": {
+        "kind": "options",
+        "pinned_in_every_option": [
+          "ginzan-onsen"
+        ]
+      }
     },
     {
       "id": "must-include-two-stops",
-      "request": {"month": 11, "regional_nights": 6, "arrival_city": "Tokyo", "departure_city": "Osaka", "interests": ["culture", "nature"], "must_include": ["Takayama", "Kanazawa"]},
-      "expect": {"kind": "options", "pinned_in_every_option": ["takayama", "kanazawa"]}
+      "request": {
+        "month": 11,
+        "regional_nights": 6,
+        "arrival_city": "Tokyo",
+        "departure_city": "Osaka",
+        "interests": [
+          "culture",
+          "nature"
+        ],
+        "must_include": [
+          "Takayama",
+          "Kanazawa"
+        ]
+      },
+      "expect": {
+        "kind": "options",
+        "pinned_in_every_option": [
+          "takayama",
+          "kanazawa"
+        ]
+      }
     },
     {
       "id": "undecided-nights",
-      "request": {"month": 5, "arrival_city": "Tokyo", "departure_city": "Tokyo", "interests": ["nature", "food"]},
-      "expect": {"kind": "nights_choice"}
+      "request": {
+        "month": 5,
+        "arrival_city": "Tokyo",
+        "departure_city": "Tokyo",
+        "interests": [
+          "nature",
+          "food"
+        ]
+      },
+      "expect": {
+        "kind": "nights_choice"
+      }
     },
     {
       "id": "short-trip-two-nights",
-      "request": {"month": 9, "regional_nights": 2, "arrival_city": "Tokyo", "departure_city": "Tokyo", "interests": ["onsen"]},
-      "expect": {"kind": "options"}
+      "request": {
+        "month": 9,
+        "regional_nights": 2,
+        "arrival_city": "Tokyo",
+        "departure_city": "Tokyo",
+        "interests": [
+          "onsen"
+        ]
+      },
+      "expect": {
+        "kind": "options"
+      }
     }
   ],
   "checks": [
@@ -67,26 +215,62 @@
       "note": "Hero RouteCheck (§10): Ginzan pinned must never be removed.",
       "request": {
         "stops": [
-          {"name": "Tokyo", "nights": 3},
-          {"name": "Sendai", "nights": 1},
-          {"name": "Ginzan Onsen", "nights": 1, "pinned": true},
-          {"name": "Aomori", "nights": 1},
-          {"name": "Hakodate", "nights": 1},
-          {"name": "Tokyo", "nights": 0}
+          {
+            "name": "Tokyo",
+            "nights": 3
+          },
+          {
+            "name": "Sendai",
+            "nights": 1
+          },
+          {
+            "name": "Ginzan Onsen",
+            "nights": 1,
+            "pinned": true
+          },
+          {
+            "name": "Aomori",
+            "nights": 1
+          },
+          {
+            "name": "Hakodate",
+            "nights": 1
+          },
+          {
+            "name": "Tokyo",
+            "nights": 0
+          }
         ],
-        "month": 1, "arrival_city": "Tokyo", "departure_city": "Tokyo"
+        "month": 1,
+        "arrival_city": "Tokyo",
+        "departure_city": "Tokyo"
       },
-      "expect": {"min_fixes": 1}
+      "expect": {
+        "min_fixes": 1
+      }
     },
     {
       "id": "late-start-to-ginzan",
       "request": {
         "stops": [
-          {"name": "Tokyo", "nights": 2, "leave_at": "15:30"},
-          {"name": "Ginzan Onsen", "nights": 2, "pinned": true},
-          {"name": "Tokyo", "nights": 0}
+          {
+            "name": "Tokyo",
+            "nights": 2,
+            "leave_at": "15:30"
+          },
+          {
+            "name": "Ginzan Onsen",
+            "nights": 2,
+            "pinned": true
+          },
+          {
+            "name": "Tokyo",
+            "nights": 0
+          }
         ],
-        "month": 1, "arrival_city": "Tokyo", "departure_city": "Tokyo"
+        "month": 1,
+        "arrival_city": "Tokyo",
+        "departure_city": "Tokyo"
       },
       "expect": {}
     },
@@ -94,23 +278,63 @@
       "id": "churn-two-pins",
       "request": {
         "stops": [
-          {"name": "Kanazawa", "nights": 1, "pinned": true},
-          {"name": "Takayama", "nights": 1},
-          {"name": "Shirakawa-go", "nights": 1},
-          {"name": "Matsumoto", "nights": 1, "pinned": true},
-          {"name": "Nagano", "nights": 1}
+          {
+            "name": "Kanazawa",
+            "nights": 1,
+            "pinned": true
+          },
+          {
+            "name": "Takayama",
+            "nights": 1
+          },
+          {
+            "name": "Shirakawa-go",
+            "nights": 1
+          },
+          {
+            "name": "Matsumoto",
+            "nights": 1,
+            "pinned": true
+          },
+          {
+            "name": "Nagano",
+            "nights": 1
+          }
         ],
-        "month": 2, "arrival_city": "Tokyo", "departure_city": "Tokyo"
+        "month": 2,
+        "arrival_city": "Tokyo",
+        "departure_city": "Tokyo"
       },
-      "expect": {"min_fixes": 1}
+      "expect": {
+        "min_fixes": 1
+      }
     },
     {
       "id": "unknown-place",
       "request": {
-        "stops": [{"name": "Tokyo", "nights": 2}, {"name": "Atlantis", "nights": 2}, {"name": "Tokyo", "nights": 0}],
-        "month": 6, "arrival_city": "Tokyo", "departure_city": "Tokyo"
+        "stops": [
+          {
+            "name": "Tokyo",
+            "nights": 2
+          },
+          {
+            "name": "Atlantis",
+            "nights": 2
+          },
+          {
+            "name": "Tokyo",
+            "nights": 0
+          }
+        ],
+        "month": 6,
+        "arrival_city": "Tokyo",
+        "departure_city": "Tokyo"
       },
-      "expect": {"issue_kinds": ["not_in_database"]}
+      "expect": {
+        "issue_kinds": [
+          "not_in_database"
+        ]
+      }
     }
   ],
   "thresholds": {
