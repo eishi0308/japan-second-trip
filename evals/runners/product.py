@@ -458,6 +458,8 @@ async def run(*, persist: bool = True, quiet: bool = False) -> SuiteResult:
                     failures.append(f"{fixes} fixes, expected at least {expect['min_fixes']}")
                 if "verdict" in expect and check["verdict"] != expect["verdict"]:
                     failures.append(f"verdict {check['verdict']}, expected {expect['verdict']}")
+                if check["verdict"] == expect.get("verdict_not"):
+                    failures.append(f"verdict must not be {check['verdict']}")
                 kinds = {i["kind"] for i in check["issues"]}
                 for kind in expect.get("issue_kinds", []):
                     if kind not in kinds:
