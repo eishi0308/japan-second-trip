@@ -207,6 +207,26 @@
       "expect": {
         "kind": "options"
       }
+    },
+    {
+      "id": "december-hokkaido-snow",
+      "request": {
+        "month": 12,
+        "regional_nights": 5,
+        "arrival_city": "Sapporo",
+        "departure_city": "Sapporo",
+        "interests": [
+          "snow",
+          "onsen",
+          "food"
+        ]
+      },
+      "expect": {
+        "kind": "options",
+        "option_areas": [
+          "hokkaido"
+        ]
+      }
     }
   ],
   "checks": [
