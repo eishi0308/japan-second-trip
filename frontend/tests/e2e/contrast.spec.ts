@@ -62,3 +62,28 @@ for (const scheme of ["light", "dark"] as const) {
     });
   }
 }
+
+test("options, option detail and the RouteCheck result meet AA contrast", async ({ page }) => {
+  await page.goto("/plan");
+  await page.getByLabel("Travel month").selectOption("1");
+  await page.getByLabel("Regional nights").selectOption("4");
+  await page.getByRole("button", { name: "onsen", exact: true }).click();
+  await page.getByRole("button", { name: "Show me three trips" }).click();
+  await page.waitForURL(/\/plan\/[^/]+$/);
+  await expect(page.getByRole("group", { name: "React to this option" })).toHaveCount(3);
+  await page.getByText("Not for this trip").click();
+  expect(await lowContrast(page), "options").toEqual([]);
+
+  await page.getByRole("link", { name: "Day by day" }).first().click();
+  await expect(page.getByRole("list", { name: "Day by day" })).toBeVisible();
+  for (const summary of await page.locator("details > summary").all()) await summary.click();
+  expect(await lowContrast(page), "option detail").toEqual([]);
+
+  await page.goto("/check");
+  await page.getByRole("textbox", { name: "Your itinerary" }).fill("Tokyo 2N, Ginzan Onsen 1N, Tokyo");
+  await page.getByRole("button", { name: "Read my itinerary" }).click();
+  await page.getByRole("combobox").filter({ hasText: "Choose a month" }).selectOption("1");
+  await page.getByRole("button", { name: "This is right: check it" }).click();
+  await expect(page.getByRole("list", { name: "Day by day" })).toBeVisible();
+  expect(await lowContrast(page), "RouteCheck result").toEqual([]);
+});
