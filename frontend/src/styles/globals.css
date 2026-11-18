@@ -68,7 +68,7 @@
 
   .field {
     @apply w-full rounded-md border border-ink-300 bg-white px-3.5 py-2.5 text-[0.95rem] text-ink-900
-           placeholder:text-ink-400 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500;
+           placeholder:text-ink-500 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500;
   }
 
   .chip {
