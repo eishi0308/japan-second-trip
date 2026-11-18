@@ -20,12 +20,11 @@ unknown place). Report: `evals/reports/product.json`.
 | --- | --- | --- |
 | Option diversity | 3 options as Classic / Unexpected / Slow-paced; no unpinned place shared between two options | 1.00 |
 | Rejection correctness | an area under "Not for this trip" has no option in it and gives a reason | 1.00 |
-| Counterfactuals honoured | apply each "if you change X" to the request and plan again: the area must become an option or stop being ruled out for that reason | 18/18 |
+| Counterfactuals honoured | apply each "if you change X" to the request and plan again: a note saying the area "becomes" an option must put it in the options; a "fits too" note must at least stop it being ruled out for that reason | 18/18 |
 | Pinned-stop preservation | must-include places are pinned in every option; no fix, in any option or RouteCheck, drops a pinned stop | 1.00 |
 | No uncited operational facts | every warning or critical issue has evidence with a source; verified or stale evidence is dated; fragile issues name their fact; a fact being checked never shows its conflicting values; every booking deadline has dated evidence; "no verified info yet" never states a time | 1.00 (62 claims) |
 
-The suite fails if any case fails, or if fewer than 80% of counterfactuals are
-honoured.
+The suite fails if any case fails, or if any counterfactual is not honoured.
 
 ## What it caught
 
@@ -36,15 +35,18 @@ makes booking items only from dated evidence
 (`planner/feasibility.py`, `_booking`; unit test
 `test_an_unverified_booking_note_gives_no_booking_deadline`).
 
-## Reported, not gated
+## Counterfactual promises (M7)
 
-`counterfactual_in_options` is 6/18 (0.33). After applying an "if you change X"
-note, the area always stops being ruled out, but it shows up as one of the
-three options in only a third of cases. In the rest, it fits but better areas
-fill the three slots. The note says the area "becomes a possible option", which
-is true of the area but may read as a promise that it will be shown. Whether to
-reword the note, or have the planner check that the area would make the top
-three, is a product decision.
+The first M6 run showed that after applying an "if you change X" note, the
+area appeared in the three options only 6 times in 18, although every note
+said it "becomes a possible option". The engine now re-plans with the change
+before making that promise, tries every candidate change first (flying out of,
+more nights, flying into and out of), and otherwise says the area "fits too,
+though other areas would still rank higher".
+
+The suite now fails if any "becomes an option" note does not put the area in
+the options. Result: 18/18 notes honoured, and 14/18 (0.78, up from 0.33) now
+promise and deliver an option.
 
 ## Hero demos as browser tests
 
