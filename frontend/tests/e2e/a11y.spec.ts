@@ -45,6 +45,29 @@ for (const path of PAGES) {
   });
 }
 
+test("the options, option detail and RouteCheck result pass the same checks", async ({ page }) => {
+  await page.goto("/plan");
+  await page.getByLabel("Travel month").selectOption("1");
+  await page.getByLabel("Regional nights").selectOption("4");
+  await page.getByRole("button", { name: "onsen", exact: true }).click();
+  await page.getByRole("button", { name: "Show me three trips" }).click();
+  await page.waitForURL(/\/plan\/[^/]+$/);
+  await expect(page.getByRole("group", { name: "React to this option" })).toHaveCount(3);
+  expect(await problems(page), "options").toEqual([]);
+
+  await page.getByRole("link", { name: "Day by day" }).first().click();
+  await expect(page.getByRole("list", { name: "Day by day" })).toBeVisible();
+  expect(await problems(page), "option detail").toEqual([]);
+
+  await page.goto("/check");
+  await page.getByRole("textbox", { name: "Your itinerary" }).fill("Tokyo 2N, Kanazawa 2N, Tokyo");
+  await page.getByRole("button", { name: "Read my itinerary" }).click();
+  await page.getByRole("combobox").filter({ hasText: "Choose a month" }).selectOption("5");
+  await page.getByRole("button", { name: "This is right: check it" }).click();
+  await expect(page.getByRole("list", { name: "Day by day" })).toBeVisible();
+  expect(await problems(page), "RouteCheck result").toEqual([]);
+});
+
 test("the plan form can be reached and sent with the keyboard alone", async ({ page }) => {
   await page.goto("/plan");
   const submit = page.getByRole("button", { name: "Show me three trips" });
