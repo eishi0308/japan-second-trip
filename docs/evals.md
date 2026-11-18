@@ -25,7 +25,7 @@ change can be attributed rather than guessed at.
 | agent | 8 | node progression, rule firing, candidate rejection, revision quality, escalation, budgets |
 | security | 19 | injection detection and quarantine, false positives, allowlist, PII redaction, capability control |
 | production | 12 | P50/P95/P99 latency, tokens, cost, retries, fallbacks, cache hit rate |
-| product | 11 plans + 4 RouteChecks | option diversity, rejection correctness (each "if you change X" re-planned), pinned-stop preservation, no uncited operational facts; see [evals/product-evals.md](evals/product-evals.md) |
+| product | 14 plans + 6 RouteChecks | option diversity, rejection correctness (each "if you change X" re-planned), pinned-stop preservation, no uncited operational facts; see [evals/product-evals.md](evals/product-evals.md) |
 
 ## Latest measured results
 
@@ -36,7 +36,7 @@ security     19/19
 rag           6/6    relevance 1.00  citations 1.00  grounded 1.00  unsupported 0
 agent         8/8    p50 381ms  p95 570ms  12.5 nodes  13.5 tool calls
 production   12/12   p50 307ms  p95 350ms  5209 tokens/run
-product      15/15   diversity 1.00  rejections 1.00  counterfactuals honoured 18/18  pins kept 1.00  cited 1.00
+product      20/20   diversity 1.00  rejections 1.00  counterfactuals honoured 27/27  pins kept 1.00  cited 1.00
 ```
 
 Retrieval reached 20/20 only after the eval exposed a real bug in lexical search
