@@ -343,7 +343,7 @@ make sweep        # retrieval hyper-parameter sweep
 ## Testing
 
 ```bash
-make test         # 380 backend tests
+make test         # 381 backend tests
 make test-web     # 30 frontend tests: component and integration against a mocked API
 make e2e          # the hero demos end to end, × 2 viewports
 make lint         # ruff, mypy, tsc
@@ -354,7 +354,7 @@ real MCP session; only outbound HTTP is faked. CI runs the whole backend suite
 against **both** SQLite and PostgreSQL, because the offline path and the
 production path must both keep working.
 
-Both legs have been run: 380 pass on SQLite; PostgreSQL last ran at M4 (377 pass) and was not re-run for M5 or M6 because Docker was down
+Both legs have been run: 381 pass on SQLite; PostgreSQL last ran at M4 (377 pass) and was not re-run for M5 or M6 because Docker was down
 (3 durable-checkpoint tests need a real PostgreSQL and skip). That is worth
 stating precisely, because for most of this project's life the PostgreSQL leg
 had never executed — a session-scoped asyncpg engine against pytest-asyncio's
