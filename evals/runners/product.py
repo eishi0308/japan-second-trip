@@ -7,7 +7,8 @@ Four properties, each checked mechanically on every case:
 * **Rejection correctness.** An area under "Not for this trip" really has no
   option in it, gives a reason, and its "if you change X" note is honest:
   apply X to the request and plan again, and the area must become an option
-  (or at least stop being ruled out).
+  when the note says the area "becomes" an option, and at least stop being
+  ruled out when it only says the area "fits too".
 * **Pinned-stop preservation.** A must-include place is pinned in every option,
   and no fix anywhere (options or RouteCheck) removes a pinned stop.
 * **No uncited operational facts.** Every warning built on a fragile fact names
@@ -400,7 +401,11 @@ async def run(*, persist: bool = True, quiet: bool = False) -> SuiteResult:
                         now_areas = {st["area"] for o in again["options"] for st in o["stops"]}
                         still = {x["area"]: x["reason"] for x in again["not_for_this_trip"]}
                         in_options = r["area"] in now_areas
-                        honoured = in_options or still.get(r["area"]) != r["reason"]
+                        if " becomes a " in note:
+                            # A promise that the area becomes an option: it must be one.
+                            honoured = in_options
+                        else:
+                            honoured = in_options or still.get(r["area"]) != r["reason"]
                         tally["counterfactual_honoured"].append(1.0 if honoured else 0.0)
                         tally["counterfactual_in_options"].append(1.0 if in_options else 0.0)
                         counterfactuals.append(
