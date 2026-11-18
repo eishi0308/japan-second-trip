@@ -6,14 +6,24 @@ import { expect, test } from "@playwright/test";
  *
  * It resolves the seeded Ginzan Onsen last-bus conflict, so it needs a freshly
  * seeded database (as CI has) and runs after the hero demos (files run in name
- * order, one worker). Re-running it locally needs a re-seed.
+ * order, one worker). A second run without a re-seed skips, saying why.
  */
 
 const ADMIN_TOKEN = process.env.E2E_ADMIN_TOKEN ?? "";
+const API = process.env.E2E_API_URL ?? "http://localhost:8000";
 
-test("a reviewer confirms a disputed fact and the saved trip is updated", async ({ page }, info) => {
+test("a reviewer confirms a disputed fact and the saved trip is updated", async ({ page, request }, info) => {
   test.skip(!ADMIN_TOKEN, "set E2E_ADMIN_TOKEN to the API's ADMIN_TOKEN");
   test.skip(info.project.name !== "desktop", "resolving the fact is one-off; run it once");
+
+  // A second run finds Ginzan already confirmed: say so, rather than fail.
+  const queue = await request.get(`${API}/api/v1/admin/facts/queue`, {
+    headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
+  });
+  expect(queue.ok()).toBeTruthy();
+  const items: { destination: string; state: string }[] = (await queue.json()).items;
+  const disputed = items.some((i) => i.destination === "Ginzan Onsen" && i.state === "being_checked");
+  test.skip(!disputed, "Ginzan Onsen is already confirmed in this database; re-seed to run again");
 
   // 1. Check and save a trip that includes Ginzan Onsen.
   await page.goto("/check");
