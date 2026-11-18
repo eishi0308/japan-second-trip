@@ -244,6 +244,24 @@
       "expect": {
         "kind": "options"
       }
+    },
+    {
+      "id": "march-long-fast-trip",
+      "request": {
+        "month": 3,
+        "regional_nights": 10,
+        "arrival_city": "Tokyo",
+        "departure_city": "Fukuoka",
+        "pace": "fast",
+        "interests": [
+          "culture",
+          "food",
+          "city"
+        ]
+      },
+      "expect": {
+        "kind": "options"
+      }
     }
   ],
   "checks": [
