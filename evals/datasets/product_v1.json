@@ -390,6 +390,32 @@
           "not_in_database"
         ]
       }
+    },
+    {
+      "id": "hokkaido-regional-two-pins",
+      "request": {
+        "stops": [
+          {
+            "name": "Sapporo",
+            "nights": 2
+          },
+          {
+            "name": "Otaru",
+            "nights": 1,
+            "pinned": true
+          },
+          {
+            "name": "Hakodate",
+            "nights": 2,
+            "pinned": true
+          }
+        ],
+        "month": 2,
+        "arrival_city": "Sapporo",
+        "departure_city": "Hakodate",
+        "mode": "regional"
+      },
+      "expect": {}
     }
   ],
   "thresholds": {
