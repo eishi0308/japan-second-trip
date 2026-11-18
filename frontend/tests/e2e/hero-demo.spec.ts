@@ -73,20 +73,16 @@ test.describe("hero demo: Australian couple, third visit, January", () => {
     const firstPin = editor.getByRole("button", { name: "Pin", exact: true }).first();
     await firstPin.click();
     await expect(editor.getByRole("button", { name: "Pinned" }).first()).toHaveAttribute("aria-pressed", "true");
-    const swaps = editor.getByRole("button", { name: "Swap" });
-    const enabled = swaps.and(page.locator(":not([disabled])"));
-    if ((await enabled.count()) > 0) {
-      await enabled.first().click();
-      const alternatives = editor.getByRole("list", { name: /^Alternatives to / });
-      const none = editor.getByText("No nearby alternative open in this month.");
-      await expect(alternatives.or(none)).toBeVisible();
-      if (await alternatives.isVisible()) {
-        const choice = alternatives.getByRole("button").first();
-        const name = (await choice.innerText()).trim();
-        await choice.click();
-        await expect(editor).toContainText(name);
-      }
-    }
+    // Swap the last unpinned stop: the alternatives are real places, and picking one re-runs the check.
+    const swap = editor.locator("button:not([disabled])", { hasText: /^Swap$/ }).last();
+    await swap.click();
+    const alternatives = editor.getByRole("list", { name: /^Alternatives to / });
+    await expect(alternatives).toBeVisible();
+    const choice = alternatives.getByRole("button").first();
+    const name = (await choice.innerText()).trim();
+    await choice.click();
+    await expect(alternatives).toHaveCount(0);
+    await expect(editor).toContainText(name);
     await expect(editor.getByRole("button", { name: "Pinned" }).first()).toBeVisible();
     await expect(timeline).toBeVisible();
 
