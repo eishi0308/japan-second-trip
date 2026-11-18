@@ -345,7 +345,7 @@ make sweep        # retrieval hyper-parameter sweep
 
 ```bash
 make test         # 381 backend tests
-make test-web     # 30 frontend tests: component and integration against a mocked API
+make test-web     # 32 frontend tests: component and integration against a mocked API
 make e2e          # hero demos, review loop, accessibility and contrast, × 2 viewports
 make lint         # ruff, mypy, tsc
 ```
