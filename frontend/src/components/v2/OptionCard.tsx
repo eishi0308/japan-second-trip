@@ -88,7 +88,7 @@ export function NotForThisTrip({ rejections }: { rejections: Rejection[] }) {
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
         <span>
           <span className="font-serif text-lg text-ink-900">Not for this trip</span>
-          <span className="ml-2 text-sm text-ink-500">{rejections.length} areas ruled out, and why</span>
+          <span className="ml-2 text-sm text-ink-500">{rejections.length} {rejections.length === 1 ? "area" : "areas"} ruled out, and why</span>
         </span>
         <span className="text-sm text-accent-700 group-open:hidden">Show</span>
         <span className="hidden text-sm text-accent-700 group-open:inline">Hide</span>
