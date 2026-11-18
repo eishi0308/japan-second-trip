@@ -167,3 +167,22 @@ async def test_injection_in_past_trip_answers_never_reaches_the_model(client) ->
         },
     )
     assert body["preferences"]["source"] == "deterministic"
+
+
+async def test_a_promised_option_appears_after_the_change(client) -> None:
+    """ "X becomes an option" is only said when re-planning with the change shows X."""
+    rejected = (await _plan(client, HERO))["plan"]["result"]["not_for_this_trip"]
+    promised = [r for r in rejected if r["if_you_change"] and " becomes a " in r["if_you_change"]]
+    assert promised
+    for r in promised:
+        note = r["if_you_change"]
+        if note.startswith("If you can fly out of "):
+            city = note.removeprefix("If you can fly out of ").split(",")[0]
+            changed = {**HERO, "departure_city": city}
+        elif note.startswith("If you fly into and out of "):
+            city = note.removeprefix("If you fly into and out of ").split(",")[0]
+            changed = {**HERO, "arrival_city": city, "departure_city": city}
+        else:
+            continue
+        options = (await _plan(client, changed))["plan"]["result"]["options"]
+        assert r["area"] in {s["area"] for o in options for s in o["stops"]}, note
