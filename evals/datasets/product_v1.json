@@ -115,6 +115,6 @@
   ],
   "thresholds": {
     "max_stop_overlap": 0.0,
-    "min_counterfactual_honoured": 0.8
+    "min_counterfactual_honoured": 1.0
   }
 }
