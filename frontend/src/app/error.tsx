@@ -16,7 +16,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
         Most often this means the API is not reachable. Check that it is running on the configured base
         URL, then try again.
       </p>
-      {error.digest ? <p className="mt-3 font-mono text-[0.78rem] text-ink-400">digest {error.digest}</p> : null}
+      {error.digest ? <p className="mt-3 font-mono text-[0.78rem] text-ink-500">digest {error.digest}</p> : null}
       <div className="mt-8 flex gap-3">
         <button type="button" onClick={reset} className="btn-primary">
           Try again
