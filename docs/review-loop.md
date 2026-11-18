@@ -62,6 +62,10 @@ It also checks that a non-time value is refused and that only admins can see
 or resolve the queue. Frontend tests cover the queue screen and the trip
 notices.
 
+`frontend/tests/e2e/review-loop.spec.ts` drives the same loop in a real
+browser: save a trip through Ginzan Onsen, confirm the last bus in `/admin`, and
+see the update on the trip and its share link.
+
 ## Not in v1
 
 - Email notifications. The notice lives on the trip; the owner's email (if
