@@ -95,7 +95,7 @@ export function DayTimeline({ days, issues }: { days: Day[]; issues: Issue[] }) 
                   <li key={i}>
                     {m.origin} {m.depart} → {m.destination} {m.arrive}
                     {m.minutes ? ` (${hours(m.minutes)}${m.transfers ? `, ${m.transfers} change${m.transfers > 1 ? "s" : ""}` : ""})` : ""}
-                    {m.estimated ? <span className="ml-1 text-ink-400">estimated</span> : null}
+                    {m.estimated ? <span className="ml-1 text-ink-500">estimated</span> : null}
                   </li>
                 ))}
               </ul>
