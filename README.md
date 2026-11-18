@@ -300,6 +300,7 @@ Full report, including per-case ranks and where each retriever loses:
 | A 14h return transfer for 2 nights passed | `MAX_TRANSIT_SHARE` 0.42 → 0.35 |
 | Two hops firing one rule shared an explanation | narratives keyed per issue |
 | An unverified ryokan pick-up note produced a "must be booked" deadline | booking items only from dated evidence |
+| "X becomes an option" held only 6 times in 18 after making the change | the note is re-planned before it promises; 14/18 now deliver |
 
 ### What the dual-dialect and live-flow verification caught
 
