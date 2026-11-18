@@ -53,7 +53,11 @@ past-trip answers (see *Preferences*).
    too far, heavy travel, out of season, needs a car, or nothing matching. It
    also gets the single change that would bring it back. That change is found
    by re-running the check with it applied, not written by hand. Example: "If
-   you can fly out of Fukuoka, Kyushu becomes a possible option."
+   you can fly out of Fukuoka, Kyushu becomes a possible option." The engine
+   says "becomes an option" only when re-planning with the change puts the
+   area in the three options; it tries every candidate change before settling.
+   Otherwise the note says the area "fits too, though other areas would still
+   rank higher".
 7. **Zero results.** The engine tries one relaxation at a time and lists the
    ones that produce options:
    - driving;
