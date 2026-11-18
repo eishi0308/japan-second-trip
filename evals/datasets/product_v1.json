@@ -227,6 +227,23 @@
           "hokkaido"
         ]
       }
+    },
+    {
+      "id": "august-coast-driving",
+      "request": {
+        "month": 8,
+        "regional_nights": 6,
+        "arrival_city": "Tokyo",
+        "departure_city": "Tokyo",
+        "transport": "can_drive",
+        "interests": [
+          "coast",
+          "nature"
+        ]
+      },
+      "expect": {
+        "kind": "options"
+      }
     }
   ],
   "checks": [
