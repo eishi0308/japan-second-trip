@@ -250,7 +250,7 @@ security     19/19
 rag           6/6    relevance 1.00  citations 1.00  grounded 1.00  unsupported 0
 agent         8/8    p50 381ms  p95 570ms
 production   12/12   p50 307ms  p95 350ms  5209 tokens/run
-product      15/15   diversity 1.00  rejections 1.00  pins kept 1.00  cited facts 1.00
+product      20/20   diversity 1.00  rejections 1.00  pins kept 1.00  cited facts 1.00
 ```
 
 The **product** suite checks the promises made to a traveller: three distinct
