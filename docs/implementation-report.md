@@ -81,7 +81,7 @@ comparison: [`evals/retrieval-comparison.md`](evals/retrieval-comparison.md).
 | --- | --- |
 | Backend | 276 tests pass on PostgreSQL; on SQLite 273 pass and 3 PostgreSQL-only tests are skipped |
 | Frontend | 52 tests pass: 24 component, 28 integration against a mocked API |
-| End-to-end (Playwright) | 20 tests × 2 viewports (desktop and mobile), all pass |
+| End-to-end (Playwright) | 19 tests × 2 viewports (desktop and mobile): 37 pass, the review loop runs on desktop only |
 | Lint and types | ruff, mypy and tsc clean |
 | Terraform | validates |
 | CI | green on GitHub for the commit above, including the Docker build and the end-to-end job |
