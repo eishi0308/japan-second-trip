@@ -22,7 +22,8 @@ with Enter.
 measures every visible piece of text against its background. Body text needs
 4.5:1 and large text (24px, or 18.66px bold) needs 3:1. It runs the four forms in
 light and dark schemes, then the result screens with the rejections and all
-evidence opened.
+evidence opened. It also hovers and focuses every button and link on the home,
+Where Next and RouteCheck screens; all keep AA.
 
 [`frontend/tests/e2e/focus.spec.ts`](../frontend/tests/e2e/focus.spec.ts)
 tabs through the same screens and fails on any focused element that shows no
@@ -49,6 +50,6 @@ matched `:focus`. Fields now show the ring on `:focus-within` as well.
 
 ## Not checked
 
-- Contrast inside images, and on hover and focus states.
+- Contrast inside images.
 - Screen-reader output itself. The tests check that names exist, not how a
   reader announces them.
