@@ -1,7 +1,7 @@
 # Accessibility
 
 PRODUCT_AMENDMENTS.md §8 asks for WCAG AA contrast, keyboard navigation and
-screen-reader labels. Two browser tests check this on every run.
+screen-reader labels. Three browser tests check this on every run.
 
 ## What is checked
 
@@ -24,6 +24,10 @@ measures every visible piece of text against its background. Body text needs
 light and dark schemes, then the result screens with the rejections and all
 evidence opened.
 
+[`frontend/tests/e2e/focus.spec.ts`](../frontend/tests/e2e/focus.spec.ts)
+tabs through the same screens and fails on any focused element that shows no
+ring or outline.
+
 ## What it found
 
 Small grey text (`ink-400`, 3.4 to 3.6:1) was used for:
@@ -42,6 +46,5 @@ icons, which need 3:1.
 ## Not checked
 
 - Contrast inside images, and on hover and focus states.
-- That keyboard focus is visible on every control.
 - Screen-reader output itself. The tests check that names exist, not how a
   reader announces them.
