@@ -42,5 +42,6 @@ icons, which need 3:1.
 ## Not checked
 
 - Contrast inside images, and on hover and focus states.
+- That keyboard focus is visible on every control.
 - Screen-reader output itself. The tests check that names exist, not how a
   reader announces them.
