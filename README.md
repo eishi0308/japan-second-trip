@@ -318,6 +318,7 @@ driving the real endpoints by hand.
 | `Narnia` fuzzy-matched Tokyo's alias `narita` at 0.833 and was silently costed as a **Tokyo** stop | see below — the score cannot decide this, so the match *kind* does |
 | An unresolved stop was reported as a staleness problem | its own `unresolved_stop` issue type |
 | Seven kinds of small grey text (header tagline, demo label, RouteCheck "estimated" and stop numbers, placeholders, admin labels) were 3.4 to 3.6:1, below WCAG AA's 4.5:1. Nothing checked contrast | a contrast browser test on every screen; the text moved one shade darker. See [`docs/accessibility.md`](docs/accessibility.md) |
+| Tabbing into the Where Next start date showed **no focus ring**: focus lands inside the native date control, so the input never matched `:focus` | fields also ring on `:focus-within`; a browser test tabs every screen and fails on any invisible focus |
 | `unknowns` showed the same line twice — the critique prompt is handed them, and the model echoes them back | order-preserving dedupe on the way out |
 | The E2E config defaulted to port 3010 while `scripts/dev.sh`, `.env.example`, the docs and CI all use 3000 — so the documented local flow (`dev.sh` then `make e2e`) hit an empty port, and CORS blocked the browser. CI passed only because it sets `E2E_BASE_URL` explicitly | Playwright defaults to 3000 like everything else |
 | 30 browser tests back to back exceed the API's own 60-requests-per-minute limit, failing whichever test crossed the line — it read as a mobile-only bug and is latent flakiness in CI's E2E job | the E2E environment raises the limit; the limiter keeps its own unit tests |
@@ -346,7 +347,7 @@ make sweep        # retrieval hyper-parameter sweep
 ```bash
 make test         # 381 backend tests
 make test-web     # 32 frontend tests: component and integration against a mocked API
-make e2e          # hero demos, review loop, accessibility and contrast, × 2 viewports
+make e2e          # hero demos, review loop, accessibility, contrast and focus, × 2 viewports
 make lint         # ruff, mypy, tsc
 ```
 
