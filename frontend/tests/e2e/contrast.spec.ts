@@ -87,3 +87,55 @@ test("options, option detail and the RouteCheck result meet AA contrast", async 
   await expect(page.getByRole("list", { name: "Day by day" })).toBeVisible();
   expect(await lowContrast(page), "RouteCheck result").toEqual([]);
 });
+
+async function stateContrast(page: Page, state: "hover" | "focus"): Promise<string[]> {
+  const out: string[] = [];
+  const controls = page.locator("main button:visible, main a[href]:visible, header a[href]:visible");
+  const n = await controls.count();
+  expect(n, "controls to check").toBeGreaterThan(0);
+  for (let i = 0; i < n; i++) {
+    const control = controls.nth(i);
+    if (await control.isDisabled().catch(() => false)) continue;
+    if (state === "hover") await control.hover();
+    else await control.focus();
+    const bad = await control.evaluate((el) => {
+      const parse = (c: string) => c.match(/[\d.]+/g)?.map(Number) ?? null;
+      const lum = ([r, g, b]: number[]) => {
+        const f = (v: number) => {
+          const s = v / 255;
+          return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+        };
+        return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+      };
+      let bg: number[] = [255, 255, 255];
+      for (let p: Element | null = el; p; p = p.parentElement) {
+        const c = parse(getComputedStyle(p).backgroundColor);
+        if (c && (c[3] ?? 1) > 0.5) {
+          bg = c;
+          break;
+        }
+      }
+      const s = getComputedStyle(el);
+      const fg = parse(s.color);
+      if (!fg || !el.textContent?.trim()) return null;
+      const [l1, l2] = [lum(fg), lum(bg)].sort((a, b) => b - a);
+      const ratio = (l1 + 0.05) / (l2 + 0.05);
+      const size = parseFloat(s.fontSize);
+      const large = size >= 24 || (size >= 18.66 && Number(s.fontWeight) >= 700);
+      return ratio < (large ? 3 : 4.5) ? `${ratio.toFixed(2)}:1 "${el.textContent.trim().slice(0, 40)}"` : null;
+    });
+    if (bad) out.push(bad);
+  }
+  return [...new Set(out)];
+}
+
+for (const state of ["hover", "focus"] as const) {
+  for (const path of ["/", "/plan", "/check"]) {
+    test(`${path} buttons and links keep AA contrast on ${state}`, async ({ page }, info) => {
+      test.skip(state === "hover" && info.project.name === "mobile", "no hover on touch screens");
+      await page.goto(path);
+      await page.waitForLoadState("networkidle");
+      expect(await stateContrast(page, state)).toEqual([]);
+    });
+  }
+}
