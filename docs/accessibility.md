@@ -43,6 +43,10 @@ Small grey text (`ink-400`, 3.4 to 3.6:1) was used for:
 All of it now uses `ink-500`, which is above 4.5:1. `ink-400` is kept only for
 icons, which need 3:1.
 
+Tabbing into the start date on Where Next showed no focus ring. The browser
+moves focus to a part inside the native date control, so the input never
+matched `:focus`. Fields now show the ring on `:focus-within` as well.
+
 ## Not checked
 
 - Contrast inside images, and on hover and focus states.
